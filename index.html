@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HospitalityOS · Angebots-Assistent · Prototyp</title>
+<meta name="description" content="Klickbarer Prototyp des HospitalityOS Angebots-Assistenten. Von der Anfrage zum freigegebenen Angebot, mit Beleg an jeder Angabe und ohne Versand ohne Freigabe.">
+<!-- Nicht in Suchmaschinen. Der Prototyp wird gezielt weitergegeben,
+     er soll nicht über eine Suche gefunden werden. -->
+<meta name="robots" content="noindex, nofollow">
+<!-- Vorschaukarte, damit der Link in WhatsApp und LinkedIn etwas zeigt
+     statt einer nackten Adresse. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HospitalityOS">
+<meta property="og:title" content="HospitalityOS · Angebots-Assistent">
+<meta property="og:description" content="Von der Anfrage zum freigegebenen Angebot. Klickbarer Prototyp, alle Daten sind Beispiele.">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%23141619"/><text x="16" y="23" font-family="Georgia,serif" font-size="20" font-weight="700" fill="%23d2a443" text-anchor="middle">H</text></svg>'>
+<style>
+  /* ================================================================
+     HospitalityOS · Angebots-Assistent · Prototyp
+     Farbwelt nach der Markenspezifikation, tiefes Anthrazit als Grund,
+     warmes Gold als Akzent, Weiss fuer Text.
+     Eine einzige Datei, keine fremden Bibliotheken, laeuft auch offline.
+     ================================================================ */
+  :root {
+    --anthrazit: #141619;
+    --anthrazit-tief: #0e1013;
+    --gold: #d2a443;
+    --gold-tief: #a87f2c;
+    --elfenbein: #faf8f3;
+    --weiss: #ffffff;
+    --text: #23252a;
+    --text-leise: #61656e;
+    --linie: #e6e2d8;
+    --gruen: #2f6b4f;
+    --gruen-hell: #eef6f1;
+    --rot: #a33a32;
+    --rot-hell: #fdf0ef;
+    --gelb-hell: #fdf8ee;
+    --schatten: 0 1px 2px rgba(20,22,25,.06), 0 8px 24px rgba(20,22,25,.05);
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--elfenbein); color: var(--text);
+    font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { font-weight: 700; line-height: 1.25; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  a { color: var(--gold-tief); }
+  ul { list-style: none; }
+
+  /* ---------------------------------------------------------- Geruest
+     Die Seitenleiste ist NICHT fest breit. Eine feste Leiste verdraengt
+     auf dem Handy den Inhalt, und wenn der Rahmen dann noch auf
+     verborgenen Ueberlauf steht, ist er nicht nur haesslich, sondern
+     unerreichbar. Deshalb wandert sie unterhalb von 900px nach oben
+     und wird zu einer waagerechten Leiste. */
+  .app { display: flex; min-height: 100%; }
+  .nav {
+    width: 254px; flex: 0 0 254px; background: var(--anthrazit);
+    display: flex; flex-direction: column; gap: 26px; padding: 22px 16px;
+  }
+  .marke { display: flex; align-items: center; gap: 11px; padding: 0 8px; }
+  .monogramm {
+    width: 38px; height: 38px; flex: 0 0 38px; border-radius: 9px;
+    background: linear-gradient(150deg, #1d2026, #101216);
+    border: 1px solid rgba(210,164,67,.35);
+    display: grid; place-items: center;
+    font-family: Georgia, "Times New Roman", serif; font-size: 21px;
+    font-weight: 700; color: var(--gold);
+  }
+  .marke-text { display: flex; flex-direction: column; min-width: 0; }
+  .marke-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: .01em; }
+  .marke-sub { font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+               text-transform: uppercase; color: var(--gold); }
+  .nav-liste { display: flex; flex-direction: column; gap: 3px; }
+  .nav-punkt {
+    display: flex; align-items: center; gap: 11px; width: 100%;
+    padding: 10px 12px; border-radius: 9px; min-height: 44px;
+    color: rgba(255,255,255,.68); font-size: 14.5px; text-align: left;
+  }
+  .nav-punkt:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-punkt[aria-current="page"] { background: rgba(210,164,67,.14); color: #fff; font-weight: 600; }
+  .nav-punkt[aria-current="page"] .nav-icon { color: var(--gold); }
+  .nav-icon { width: 19px; flex: 0 0 19px; text-align: center; color: rgba(255,255,255,.5); }
+  .nav-zahl {
+    margin-left: auto; font-size: 12px; font-weight: 700; padding: 1px 8px;
+    border-radius: 999px; background: rgba(210,164,67,.18); color: var(--gold);
+  }
+  .nav-fuss { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
+  .nav-hinweis {
+    background: rgba(255,255,255,.05); border-radius: 10px; padding: 12px 13px;
+    font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,.62);
+  }
+  .nav-hinweis b { color: rgba(255,255,255,.9); }
+  .nutzer { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+  .nutzer-kreis {
+    width: 34px; height: 34px; flex: 0 0 34px; border-radius: 999px;
+    background: var(--gold); color: var(--anthrazit);
+    display: grid; place-items: center; font-size: 12.5px; font-weight: 800;
+  }
+  .nutzer-name { font-size: 13.5px; font-weight: 600; color: #fff; }
+  .nutzer-rolle { font-size: 11.5px; color: rgba(255,255,255,.5); }
+
+  .inhalt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .kopf {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 18px 26px; background: var(--weiss); border-bottom: 1px solid var(--linie);
+  }
+  .kopf-text { min-width: 0; flex: 1; }
+  .kopf-kicker { font-size: 11px; font-weight: 700; letter-spacing: .13em;
+                 text-transform: uppercase; color: var(--gold-tief); }
+  .kopf-titel { font-size: 21px; }
+  .bahn { flex: 1; min-width: 0; overflow-y: auto; padding: 22px 26px 60px; }
+
+  /* ------------------------------------------------------------ Bausteine */
+  .karte { background: var(--weiss); border: 1px solid var(--linie);
+           border-radius: var(--radius); box-shadow: var(--schatten); }
+  .karte-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+                padding: 15px 18px; border-bottom: 1px solid var(--linie); }
+  .karte-titel { font-size: 15.5px; }
+  .karte-leib { padding: 16px 18px; }
+  .gitter { display: grid; gap: 14px; }
+  .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g-haupt { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; }
+  .stapel { display: flex; flex-direction: column; gap: 14px; }
+
+  .kennzahl { background: var(--weiss); border: 1px solid var(--linie);
+              border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--schatten); }
+  .kennzahl-label { font-size: 11px; font-weight: 700; letter-spacing: .1em;
+                    text-transform: uppercase; color: var(--text-leise); }
+  .kennzahl-wert { font-size: 30px; font-weight: 800; line-height: 1.15; margin-top: 4px;
+                   font-variant-numeric: tabular-nums; }
+  .kennzahl-note { font-size: 12.5px; color: var(--text-leise); margin-top: 2px; }
+  .kennzahl-note.gut { color: var(--gruen); font-weight: 600; }
+  .kennzahl-note.warn { color: var(--rot); font-weight: 600; }
+
+  .pille { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+           border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .p-gold { background: rgba(210,164,67,.16); color: var(--gold-tief); }
+  .p-gruen { background: var(--gruen-hell); color: var(--gruen); }
+  .p-rot { background: var(--rot-hell); color: var(--rot); }
+  .p-grau { background: #f0f0ee; color: var(--text-leise); }
+
+  .knopf { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+           padding: 11px 18px; border-radius: 9px; font-size: 14.5px; font-weight: 700;
+           min-height: 44px; border: 1px solid transparent; }
+  .k-gold { background: var(--gold); color: #1a1a1a; }
+  .k-gold:hover { background: var(--gold-tief); color: #fff; }
+  .k-dunkel { background: var(--anthrazit); color: #fff; }
+  .k-dunkel:hover { background: #23262c; }
+  .k-rand { border-color: var(--linie); background: var(--weiss); }
+  .k-rand:hover { border-color: var(--gold); }
+  .k-still { color: var(--text-leise); }
+  .k-still:hover { color: var(--text); }
+  .knopf[disabled] { opacity: .45; cursor: not-allowed; }
+  .k-klein { padding: 7px 12px; min-height: 36px; font-size: 13px; }
+  .reihe { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+
+  /* ------------------------------------------------------------ Schalter
+     Ein Schalter ist ein `role="switch"`, kein bemaltes Kaestchen. Damit
+     liest ein Screenreader den Zustand vor, und die Tastatur bedient ihn
+     ohne Zutun. Mindestens 44 Pixel hoch, sonst trifft ihn auf dem Handy
+     niemand zuverlaessig. */
+  .schalter-zeile { display: flex; gap: 12px; align-items: flex-start;
+                    padding: 10px 0; border-bottom: 1px solid var(--linie); }
+  .schalter-zeile:last-child { border-bottom: 0; }
+  .schalter { position: relative; width: 46px; height: 27px; flex: 0 0 46px;
+              border-radius: 999px; background: #d8d6cf; margin-top: 3px;
+              transition: background .15s ease; }
+  .schalter[aria-checked="true"] { background: var(--gold); }
+  .schalter:focus-visible { outline: 2px solid var(--gold-tief); outline-offset: 2px; }
+  .schalter-knopf { position: absolute; top: 3px; left: 3px; width: 21px; height: 21px;
+                    border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+                    transition: transform .15s ease; }
+  .schalter[aria-checked="true"] .schalter-knopf { transform: translateX(19px); }
+  .schalter-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .schalter-text b { font-size: 14px; }
+  .schalter-text span { font-size: 12.5px; color: var(--text-leise); line-height: 1.5; }
+
+  /* Zahlenfeld in einer Tabellenzelle. Schmal, damit die Spalte nicht
+     auseinanderlaeuft, aber weiterhin 44 Pixel hoch. */
+  .preis-feld { width: 108px; min-width: 108px; padding: 8px 10px; min-height: 44px;
+                font: inherit; border: 1px solid var(--linie); border-radius: 8px;
+                background: var(--weiss); color: var(--text);
+                font-variant-numeric: tabular-nums; }
+  .preis-feld:focus { outline: 2px solid rgba(210,164,67,.5); outline-offset: 1px;
+                      border-color: var(--gold); }
+  tr.aus td { opacity: .5; }
+
+  .marke-pille { display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px 5px 12px;
+                 border-radius: 999px; background: #f0f0ee; font-size: 12.5px; font-weight: 600; }
+  .marke-pille button { width: 26px; height: 26px; border-radius: 999px; color: var(--text-leise);
+                        display: grid; place-items: center; font-size: 13px; }
+  .marke-pille button:hover { background: rgba(163,58,50,.12); color: var(--rot); }
+
+  .feld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .feld-label { font-size: 11px; font-weight: 700; letter-spacing: .09em;
+                text-transform: uppercase; color: var(--text-leise); }
+  .feld input, .feld textarea, .feld select {
+    font: inherit; width: 100%; padding: 9px 11px; border: 1px solid var(--linie);
+    border-radius: 8px; background: var(--weiss); color: var(--text); min-height: 42px;
+  }
+  .feld textarea { min-height: 84px; resize: vertical; }
+  /* Ein aus Platzgruenden mehrzeiliges Wertfeld bleibt so hoch wie ein
+     einzeiliges, sonst springt das Layout je nach Textlaenge. */
+  .feld textarea.eng { min-height: 42px; resize: vertical; }
+  .feld input:focus, .feld textarea:focus, .feld select:focus {
+    outline: 2px solid rgba(210,164,67,.5); outline-offset: 1px; border-color: var(--gold); }
+
+  .beleg { font-size: 12px; color: var(--text-leise); display: flex; gap: 6px;
+           align-items: baseline; flex-wrap: wrap; }
+  .beleg-zitat { font-style: italic; }
+
+  .kasten { border-radius: 10px; padding: 13px 15px; border-left: 4px solid; }
+  .kasten-titel { font-size: 11px; font-weight: 800; letter-spacing: .11em;
+                  text-transform: uppercase; margin-bottom: 5px; }
+  .kasten-text { font-size: 13.5px; line-height: 1.55; }
+  .kasten.gold { background: var(--gelb-hell); border-color: var(--gold); }
+  .kasten.gold .kasten-titel { color: var(--gold-tief); }
+  .kasten.rot { background: var(--rot-hell); border-color: var(--rot); }
+  .kasten.rot .kasten-titel { color: var(--rot); }
+  .kasten.gruen { background: var(--gruen-hell); border-color: var(--gruen); }
+  .kasten.gruen .kasten-titel { color: var(--gruen); }
+  .kasten.grau { background: #f5f5f3; border-color: #b9b9b2; }
+  .kasten.grau .kasten-titel { color: var(--text-leise); }
+
+  /* Tabellen duerfen waagerecht scrollen. Ein abgeschnittener Rahmen ist
+     ein stiller Verlust, ein scrollbarer ist Absicht. */
+  .tabelle-rahmen { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .09em;
+       text-transform: uppercase; color: var(--text-leise);
+       padding: 9px 14px; border-bottom: 1px solid var(--linie); white-space: nowrap; }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--linie); font-size: 14px;
+       vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr.klickbar:hover { background: var(--gelb-hell); cursor: pointer; }
+  .zahl { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rechts { text-align: right; }
+
+  .liste-zeile { display: flex; align-items: center; gap: 14px; padding: 13px 18px;
+                 border-bottom: 1px solid var(--linie); width: 100%; text-align: left;
+                 min-height: 44px; }
+  .liste-zeile:last-child { border-bottom: 0; }
+  .liste-zeile:hover { background: var(--gelb-hell); }
+  .kanal { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 9px;
+           display: grid; place-items: center; font-size: 15px; background: #f2f1ed; }
+  /* Die beiden Zeilen muessen BLOCK sein, sonst laufen sie inline
+     zusammen und lassen sich auf schmalen Bildschirmen nicht umbrechen.
+     Dazu `overflow-wrap`, weil deutsche Komposita wie
+     „Fuehrungskraeftetagung" sonst als ein unteilbares Wort stehen
+     bleiben und den Rahmen sprengen. Gemessen bei 390 Pixel, 53 und 19 Pixel Ueberlauf. */
+  .liste-haupt { min-width: 0; flex: 1; }
+  .liste-titel { display: block; font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+  .liste-sub { display: block; font-size: 12.5px; color: var(--text-leise); overflow-wrap: anywhere; }
+  .liste-rechts { text-align: right; display: flex; flex-direction: column;
+                  gap: 3px; align-items: flex-end; flex-shrink: 0; }
+
+  .schritte { display: flex; gap: 8px; flex-wrap: wrap; }
+  .schritt { display: flex; align-items: center; gap: 8px; padding: 7px 13px;
+             border-radius: 999px; background: #f2f1ed; font-size: 12.5px;
+             font-weight: 600; color: var(--text-leise); }
+  .schritt.aktiv { background: var(--anthrazit); color: #fff; }
+  .schritt.fertig { background: var(--gruen-hell); color: var(--gruen); }
+
+  .positionen td:last-child, .positionen th:last-child { text-align: right; }
+  .summe-zeile td { border-top: 2px solid var(--linie); font-weight: 700; }
+
+  .fuss { padding: 18px 26px 26px; color: var(--text-leise); font-size: 12px;
+          border-top: 1px solid var(--linie); background: var(--weiss); }
+
+  /* Frueher stand hier `.nur-lesbar` fuer unsichtbare Tabellenbeschriftungen.
+     Eine Ueberlaufmessung meldet hier zu Recht 478 Pixel Inhalt in 1 Pixel
+     Rahmen, denn genau so ist die Technik gebaut. Die Beschriftung sitzt jetzt als `aria-label` an der
+     Tabelle selbst. Fuer den Screenreader ist das gleichwertig, und es bleibt kein leeres
+     Element uebrig. Eine Messung mit Dauerfehlalarm wird irgendwann ignoriert. */
+
+  /* ------------------------------------------------------------- Schmal
+     Ab hier wandert die Navigation nach oben. Nichts wird abgeschnitten,
+     alles bleibt erreichbar. */
+  @media (max-width: 900px) {
+    .app { flex-direction: column; }
+    .nav { width: 100%; flex: none; flex-direction: row; align-items: center;
+           gap: 12px; padding: 12px 14px; overflow-x: auto; }
+    .marke { flex: 0 0 auto; padding: 0; }
+    .marke-text { display: none; }
+    .nav-liste { flex-direction: row; gap: 4px; }
+    .nav-punkt { padding: 9px 12px; white-space: nowrap; }
+    .nav-icon { display: none; }
+    .nav-fuss { display: none; }
+    .kopf, .bahn, .fuss { padding-left: 16px; padding-right: 16px; }
+    .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g2, .g-haupt { grid-template-columns: minmax(0, 1fr); }
+    .kennzahl-wert { font-size: 25px; }
+  }
+  @media (max-width: 480px) {
+    .g4 { grid-template-columns: minmax(0, 1fr); }
+    .kopf-titel { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div id="wurzel"></div>
+
+<script>
+/* ==================================================================
+   HospitalityOS · Angebots-Assistent · Prototyp
+   ------------------------------------------------------------------
+   WAS DAS IST
+     Ein klickbarer Prototyp, kein Produkt. Alle Zahlen, Namen und
+     Anfragen sind erfunden, das Haus „Landgut Rosenhoehe" gibt es
+     nicht. Es geht ausschliesslich um den Ablauf und um die
+     Bedienung.
+
+   WAS DIESER PROTOTYP BEWUSST ANDERS MACHT
+     Vier Dinge sind hier eingebaut, weil ein Assistent ohne sie
+     Vertrauen kostet statt es aufzubauen.
+     1. Jede Angabe traegt ihren BELEG, das Zitat aus der Anfrage
+        und den Zeitpunkt. Nichts steht ohne Herkunft da.
+     2. Was der Assistent NICHT sicher weiss, steht sichtbar in einem
+        eigenen Kasten, statt still geraten zu werden.
+     3. Die Anrede wird NIE aus dem Vornamen erraten. Ist sie
+        unbekannt, formuliert der Assistent ohne Anrede.
+     4. Nichts verlaesst das Haus ohne ausdrueckliche Freigabe.
+
+   DER ASSISTENT IST BEDIENBAR, NICHT NUR ANZUSEHEN
+     Unter „Assistent anlernen" steht keine Anzeige, sondern die
+     Steuerung. Preise, Raeume, Regeln, Aufschlag und Anschreiben
+     werden dort gesetzt und wirken sofort im Angebot.
+     Zwei Dinge sind dabei Absicht.
+     a) JEDER Preis wird zur Laufzeit aus den Einstellungen geholt.
+        Steht eine Zahl zusaetzlich fest im Text, laufen Bildschirm
+        und Angebot auseinander, sobald jemand sie aendert.
+     b) Was der Prototyp NICHT kann, steht dort ausdruecklich. Eine
+        frei formulierte eigene Regel wird nicht ausgefuehrt, sie
+        erscheint in der Freigabe zum Abhaken durch einen Menschen.
+
+   UMBAU AUF EINEN ANDEREN BETRIEB
+     Nur die Konstante HAUS anfassen, dazu RAEUME und LEISTUNGEN.
+     STANDARD zieht seine Werte daraus und muss nicht mit gepflegt
+     werden. Der Rest bleibt.
+   ================================================================== */
+
+const HAUS = {
+  name: 'Landgut Rosenhöhe',
+  zusatz: 'Hotel, Restaurant und Eventscheune',
+  gastgeberin: 'Nina Wolters',
+  rolle: 'Bankett und Verkauf',
+  kuerzel: 'NW',
+  antwortzeit: '2 Stunden'
+};
+
+/* Die Plaetze stehen als ZAHLEN da, nicht nur als Text. Sobald ein Raum
+   abgeschaltet wird, muss der Assistent einen Ersatz suchen, und dafuer
+   braucht er eine Untergrenze und eine Obergrenze zum Rechnen. Der
+   Anzeigetext wird daraus erzeugt, damit beides nie auseinanderlaeuft. */
+const RAEUME = [
+  { name: 'Eventscheune', von: 60, bis: 140, tagespauschale: 890 },
+  { name: 'Kaminsaal', von: 30, bis: 70, tagespauschale: 540 },
+  { name: 'Bibliothek', von: 10, bis: 24, tagespauschale: 280 },
+  { name: 'Terrasse am Weiher', von: 20, bis: 80, tagespauschale: 360 }
+];
+
+const LEISTUNGEN = [
+  { name: 'Menü Rosenhöhe, drei Gänge', einzel: 68, einheit: 'je Person' },
+  { name: 'Menü Rosenhöhe, vier Gänge', einzel: 84, einheit: 'je Person' },
+  { name: 'Flying Buffet', einzel: 59, einheit: 'je Person' },
+  { name: 'Getränkepauschale, vier Stunden', einzel: 34, einheit: 'je Person' },
+  { name: 'Tagungspauschale mit Technik', einzel: 62, einheit: 'je Person' },
+  { name: 'Übernachtung im Doppelzimmer', einzel: 149, einheit: 'je Zimmer' },
+  /* Auch der Sektempfang kommt aus der Preisliste. Stuende er fest im Code,
+  waere er ueber keinen Bildschirm aenderbar.
+     Bei einem Rundlauf mit allen Preisen auf 1 Euro machte diese eine
+     Zahl 95 Prozent der Summe aus, waehrend daneben stand, jeder Preis
+     komme aus „Assistent anlernen". */
+  { name: 'Sektempfang mit Canapés', einzel: 18, einheit: 'je Person' }
+];
+
+/* Sicherheit einer erkannten Angabe.
+   sicher   = woertlich in der Anfrage genannt
+   abgeleitet = aus dem Text geschlossen, plausibel, aber nicht gesagt
+   fehlt    = steht nirgends, muss erfragt werden */
+const ANFRAGEN = [
+  {
+    id: 'A-2418', kanal: 'E-Mail', kanalIcon: '✉',
+    absender: 'Katrin Möller', anrede: 'Frau', firma: 'Möller und Reeder Rechtsanwälte',
+    eingang: 'heute, 08:14', frist: 'heute', status: 'offen',
+    text: 'Guten Tag, wir feiern im Oktober das fünfzigjährige Bestehen unserer Kanzlei und suchen dafür ein Haus im Umland. Wir rechnen mit etwa 60 Personen, gerne mit einem festlichen Menü und einem Sektempfang davor. Ein Freitagabend wäre uns am liebsten. Über ein Angebot würden wir uns freuen. Mit freundlichen Grüßen, Katrin Möller',
+    erkannt: [
+      { feld: 'Anlass', wert: 'Kanzleijubiläum, 50 Jahre', güte: 'sicher', zitat: 'das fünfzigjährige Bestehen unserer Kanzlei' },
+      { feld: 'Personen', wert: '60', güte: 'sicher', zitat: 'etwa 60 Personen' },
+      { feld: 'Zeitraum', wert: 'Oktober, Freitagabend', güte: 'sicher', zitat: 'im Oktober … Ein Freitagabend wäre uns am liebsten' },
+      { feld: 'Leistungswunsch', wert: 'festliches Menü, Sektempfang', güte: 'sicher', zitat: 'einem festlichen Menü und einem Sektempfang davor' },
+      { feld: 'Anrede', wert: 'Frau Möller', güte: 'sicher', zitat: 'Mit freundlichen Grüßen, Katrin Möller' },
+      { feld: 'Budgetrahmen', wert: '', güte: 'fehlt', zitat: '' },
+      { feld: 'Genaues Datum', wert: '', güte: 'fehlt', zitat: '' }
+    ],
+    raum: 'Eventscheune', personen: 60, monat: 'Oktober', reineTagung: false,
+    posten: [
+      { haupt: true, raum: 'Eventscheune', menge: 1 },
+      { leistung: 'Menü Rosenhöhe, vier Gänge', menge: 60, proPerson: true },
+      { leistung: 'Sektempfang mit Canapés', menge: 60, proPerson: true }
+    ]
+  },
+  {
+    id: 'A-2417', kanal: 'Formular', kanalIcon: '▤',
+    absender: 'Jonas Bergmann', anrede: 'Herr', firma: 'privat',
+    eingang: 'heute, 07:02', frist: 'morgen', status: 'offen',
+    text: 'Wir heiraten im Juni und suchen eine Location für rund 90 Gäste, gerne draußen für die Trauung und drinnen zum Feiern. Musik bis in die Nacht wäre wichtig. Können Sie uns etwas anbieten?',
+    erkannt: [
+      { feld: 'Anlass', wert: 'Hochzeit', güte: 'sicher', zitat: 'Wir heiraten im Juni' },
+      { feld: 'Personen', wert: '90', güte: 'sicher', zitat: 'rund 90 Gäste' },
+      { feld: 'Zeitraum', wert: 'Juni', güte: 'sicher', zitat: 'im Juni' },
+      { feld: 'Leistungswunsch', wert: 'Trauung im Freien, Feier drinnen, späte Musik', güte: 'sicher', zitat: 'draußen für die Trauung und drinnen zum Feiern' },
+      { feld: 'Anrede', wert: '', güte: 'fehlt', zitat: '' },
+      { feld: 'Budgetrahmen', wert: '', güte: 'fehlt', zitat: '' },
+      { feld: 'Genaues Datum', wert: '', güte: 'fehlt', zitat: '' }
+    ],
+    raum: 'Eventscheune', personen: 90, monat: 'Juni', reineTagung: false,
+    posten: [
+      { haupt: true, raum: 'Eventscheune', menge: 1 },
+      { raum: 'Terrasse am Weiher', zusatz: ' für die Trauung', menge: 1 },
+      { leistung: 'Flying Buffet', menge: 90, proPerson: true },
+      { leistung: 'Getränkepauschale, vier Stunden', menge: 90, proPerson: true }
+    ]
+  },
+  {
+    id: 'A-2416', kanal: 'E-Mail', kanalIcon: '✉',
+    absender: 'Silke Ahrends', anrede: 'Frau', firma: 'Ahrends Maschinenbau',
+    eingang: 'gestern, 16:40', frist: 'heute', status: 'in Arbeit',
+    text: 'Sehr geehrte Damen und Herren, wir suchen für unsere Führungskräftetagung am 12. und 13. März Räume für 24 Personen, inklusive Übernachtung und Verpflegung. Budget liegt bei rund 5.000 Euro. Freundliche Grüße, S. Ahrends',
+    erkannt: [
+      { feld: 'Anlass', wert: 'Führungskräftetagung', güte: 'sicher', zitat: 'unsere Führungskräftetagung' },
+      { feld: 'Personen', wert: '24', güte: 'sicher', zitat: 'Räume für 24 Personen' },
+      { feld: 'Zeitraum', wert: '12. und 13. März', güte: 'sicher', zitat: 'am 12. und 13. März' },
+      { feld: 'Leistungswunsch', wert: 'Tagung, Übernachtung, Verpflegung', güte: 'sicher', zitat: 'inklusive Übernachtung und Verpflegung' },
+      { feld: 'Budgetrahmen', wert: '5.000 Euro', güte: 'sicher', zitat: 'Budget liegt bei rund 5.000 Euro' },
+      { feld: 'Anrede', wert: '', güte: 'fehlt', zitat: 'nur „S. Ahrends" genannt, Vorname unbekannt' },
+      { feld: 'Zimmeranzahl', wert: '12 Doppelzimmer', güte: 'abgeleitet', zitat: 'aus 24 Personen geschlossen, nicht genannt' }
+    ],
+    raum: 'Bibliothek', personen: 24, monat: 'März', reineTagung: true,
+    posten: [
+      { haupt: true, raum: 'Bibliothek', zusatz: ', zwei Tage', menge: 2 },
+      { leistung: 'Tagungspauschale mit Technik', menge: 48 },
+      { leistung: 'Übernachtung im Doppelzimmer', menge: 12 }
+    ]
+  },
+  {
+    id: 'A-2415', kanal: 'WhatsApp', kanalIcon: '✆',
+    absender: 'Peter Lindau', anrede: 'Herr', firma: 'Praxisklinik am Park',
+    eingang: 'gestern, 11:25', frist: 'übermorgen', status: 'offen',
+    text: 'Hallo, wir würden gern unser Praxisjubiläum bei Ihnen feiern, 25 Leute, irgendwann im Frühjahr. Was würde das ungefähr kosten?',
+    erkannt: [
+      { feld: 'Anlass', wert: 'Praxisjubiläum', güte: 'sicher', zitat: 'unser Praxisjubiläum' },
+      { feld: 'Personen', wert: '25', güte: 'sicher', zitat: '25 Leute' },
+      { feld: 'Zeitraum', wert: 'Frühjahr', güte: 'sicher', zitat: 'irgendwann im Frühjahr' },
+      { feld: 'Anrede', wert: 'Herr Lindau', güte: 'abgeleitet', zitat: 'aus dem gespeicherten Kontakt, nicht aus der Nachricht' },
+      { feld: 'Leistungswunsch', wert: '', güte: 'fehlt', zitat: '' },
+      { feld: 'Budgetrahmen', wert: '', güte: 'fehlt', zitat: '' },
+      { feld: 'Genaues Datum', wert: '', güte: 'fehlt', zitat: '' }
+    ],
+    raum: 'Kaminsaal', personen: 25, monat: 'Frühjahr', reineTagung: false,
+    posten: [
+      { haupt: true, raum: 'Kaminsaal', menge: 1 },
+      { leistung: 'Menü Rosenhöhe, drei Gänge', menge: 25, proPerson: true },
+      { leistung: 'Getränkepauschale, vier Stunden', menge: 25, proPerson: true }
+    ]
+  },
+  {
+    id: 'A-2414', kanal: 'Telefon', kanalIcon: '☎',
+    absender: 'Miriam Voss', anrede: 'Frau', firma: 'Nordlicht Digital',
+    eingang: 'vorgestern, 14:05', frist: 'erledigt', status: 'freigegeben',
+    text: 'Telefonnotiz, aufgenommen von Nina Wolters. Sommerfest für 60 Personen im Juli, gerne draußen, Grillbuffet, Budget offen. Rückruf erwünscht.',
+    erkannt: [
+      { feld: 'Anlass', wert: 'Sommerfest', güte: 'sicher', zitat: 'Sommerfest für 60 Personen' },
+      { feld: 'Personen', wert: '60', güte: 'sicher', zitat: 'für 60 Personen' },
+      { feld: 'Zeitraum', wert: 'Juli', güte: 'sicher', zitat: 'im Juli' },
+      { feld: 'Leistungswunsch', wert: 'draußen, Grillbuffet', güte: 'sicher', zitat: 'gerne draußen, Grillbuffet' },
+      { feld: 'Anrede', wert: 'Frau Voss', güte: 'sicher', zitat: 'aus der Telefonnotiz' },
+      { feld: 'Budgetrahmen', wert: '', güte: 'fehlt', zitat: 'ausdrücklich offen gelassen' }
+    ],
+    raum: 'Terrasse am Weiher', personen: 60, monat: 'Juli', reineTagung: false,
+    posten: [
+      { haupt: true, raum: 'Terrasse am Weiher', menge: 1 },
+      { leistung: 'Flying Buffet', menge: 60, proPerson: true },
+      { leistung: 'Getränkepauschale, vier Stunden', menge: 40 }
+    ]
+  }
+];
+
+/* ------------------------------------------------------------ Regeln
+   Drei Regeln sind FEST verdrahtet und tragen keinen Schalter. Sie sind
+   der Grund, warum dieser Assistent Vertrauen aufbaut, und ein
+   Bildschirm, auf dem man sie abschalten kann, wuerde genau das
+   Versprechen wieder einkassieren. Die uebrigen Regeln sind Sache des
+   Hauses und deshalb bedienbar. */
+const FESTE_REGELN = [
+  { text: 'Kein Angebot verlässt das Haus ohne Freigabe durch einen Menschen.',
+    warum: 'Automatischer Versand ist nicht vorgesehen und lässt sich auch nicht einschalten.' },
+  { text: 'Fehlt die Anrede, wird ohne Anrede formuliert und nie geraten.',
+    warum: 'Eine falsche Anrede kostet mehr als eine fehlende.' },
+  { text: 'Jede erkannte Angabe trägt ihren Beleg aus der Anfrage.',
+    warum: 'Ohne Beleg wäre nicht prüfbar, woher eine Angabe stammt.' }
+];
+
+/* ----------------------------------------------------------- Zustand */
+/* Der STANDARD ist die Werkseinstellung und wird nie angefasst. Er ist
+   der Vergleichspunkt fuer „geaendert" und fuer das Zuruecksetzen.
+   Kopiert wird tief, sonst zeigt der Vergleich spaeter auf sich selbst
+   und meldet immer „Standard". */
+const STANDARD = {
+  raeume: RAEUME.map(r => ({ name: r.name, aktiv: true, preis: r.tagespauschale })),
+  leistungen: LEISTUNGEN.map(l => ({ name: l.name, preis: l.einzel })),
+  regeln: {
+    tagungAblehnen: true,
+    dezemberRuecksprache: true,
+    lueckenErfragen: true,
+    vierAugen: true,
+    /* 7.000 Euro, nicht 10.000. Bei 10.000 haette die Regel im
+       Beispielbestand KEIN einziges Angebot getroffen, und eine
+       Einstellung, die man einschalten kann, ohne dass irgendwo etwas
+       passiert, sieht wie ein Fehler aus. Gemessen an den fuenf
+       Anfragen, sie liegen zwischen 3.090 und 9.620 Euro. */
+    vierAugenAb: 7000
+  },
+  eigeneRegeln: [],
+  brief: {
+    gastgeberin: HAUS.gastgeberin,
+    rolle: HAUS.rolle,
+    gruss: 'Guten Tag',
+    schluss: 'Wir freuen uns auf Ihre Rückmeldung.',
+    antwortzeit: HAUS.antwortzeit
+  },
+  pauschale: { an: false, bez: 'Servicepauschale', prozent: 8 }
+};
+
+const tiefeKopie = x => JSON.parse(JSON.stringify(x));
+
+/* Eine Zahl aus einem Zahlenfeld, oder null. Leer, Text und negative Werte
+   liefern null, und der Aufrufer laesst den alten Wert stehen. Null ist ein
+   gueltiger Preis, deshalb wird sie ausdruecklich zugelassen. */
+function zahlOderNull(wert) {
+  const roh = String(wert).trim();
+  if (!roh) return null;
+  const zahl = Number(roh);
+  if (!isFinite(zahl) || zahl < 0) return null;
+  return Math.round(zahl);
+}
+
+const zustand = {
+  seite: 'uebersicht',
+  offen: 'A-2418',
+  schritt: 'pruefen',
+  freigegeben: {},
+  zweitFreigabe: {},
+  notizen: {},
+  bearbeitet: {},
+  briefe: {},
+  ein: tiefeKopie(STANDARD),
+  /* Der angefangene Regeltext liegt bewusst im Zustand und nicht nur im
+     Eingabefeld. Sonst waere er weg, sobald daneben ein Schalter ein
+     Neuzeichnen ausloest. */
+  entwurfRegel: ''
+};
+
+const eur = n => n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR',
+  minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const anfrage = id => ANFRAGEN.find(a => a.id === id);
+const offeneAnfragen = () => ANFRAGEN.filter(a => a.status !== 'freigegeben' && !zustand.freigegeben[a.id]);
+const istFreigegeben = a => a.status === 'freigegeben' || !!zustand.freigegeben[a.id];
+
+/* ------------------------------------------------- Eingestellte Werte
+   Jede Zahl, die im Angebot auftaucht, wird HIER geholt und nirgends
+   sonst. Sobald ein Preis auch nur an einer zweiten Stelle fest im Text
+   steht, laufen Bildschirm und Angebot auseinander, sobald jemand ihn
+   aendert. Genau das war der Zustand vorher, die Tabellen im Anlernen
+   zeigten Preise an, die das Angebot gar nicht benutzt hat. */
+/* ------------------------------------------------ Korrekturen des Menschen
+   Auf „Anfrage pruefen" steht neben jeder Angabe ein Feld. Schreiben alle sieben Felder in `zustand.bearbeitet`, ohne dass es je
+   wieder gelesen wird, ist jede Eingabe dort wirkungslos. Wer die Personenzahl von 60 auf 200
+   korrigierte, sah danach ein Angebot ueber 60 Menues. Das ist dieselbe
+   Fehlerklasse wie der Anlern-Bildschirm davor, nur eine Ansicht weiter.
+
+   Der Mensch DARF ergaenzen, was der Assistent nicht raten darf. Eine
+   ergaenzte Angabe traegt deshalb die Guete „ergänzt" und ist damit von
+   einer belegten unterscheidbar. */
+const korrektur = (a, feld) => {
+  const w = zustand.bearbeitet[a.id + feld];
+  return (typeof w === 'string' && w.trim()) ? w.trim() : null;
+};
+const luecken = a => a.erkannt.filter(x => x.güte === 'fehlt' && !korrektur(a, x.feld));
+
+/* Die Personenzahl traegt Mengen und die Raumwahl, deshalb wird sie als
+   Zahl gelesen. Steht dort etwas, das keine Zahl ist, gilt die Angabe
+   aus der Anfrage weiter, geraten wird nicht. */
+function personen(a) {
+  const k = korrektur(a, 'Personen');
+  if (!k) return a.personen;
+  const zahl = zahlAus(k);
+  return zahl === null ? a.personen : zahl;
+}
+
+/* Eine Zahl aus einer Eingabe, oder null. Getrennt geführt, weil die
+   Eingabe SICHTBAR abgelehnt werden muss, wenn sie keine Zahl ist. Ein
+   stiller Rückfall auf den alten Wert war der Grund, warum im Anschreiben
+   „für zweihundert Personen" stand, während 60 Menüs gerechnet wurden. */
+function zahlAus(text) {
+  const roh = String(text).trim();
+  if (!/^\d+$/.test(roh.replace(/[.\s]/g, ''))) return null;
+  const zahl = parseInt(roh.replace(/[.\s]/g, ''), 10);
+  return (isFinite(zahl) && zahl > 0) ? zahl : null;
+}
+
+/* Der Monat der Anfrage, aus der Korrektur des Feldes „Zeitraum".
+   Vorher las die Dezember-Regel `a.monat` roh, dadurch war sie im ganzen
+   Prototyp nicht auslösbar, während der Steckbrief sie als wirksam führte.
+   Gleiche Bauart wie bei der Personenzahl. */
+const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli',
+  'August', 'September', 'Oktober', 'November', 'Dezember'];
+function monat(a) {
+  const k = korrektur(a, 'Zeitraum');
+  if (!k) return a.monat;
+  const treffer = MONATE.find(m => k.toLowerCase().indexOf(m.toLowerCase()) >= 0);
+  return treffer || a.monat;
+}
+
+/* Der genannte Budgetrahmen als Zahl, oder null. Genutzt für den Hinweis,
+   dass das Angebot darüber liegt. Damit hat auch dieses Feld einen Leser. */
+function budget(a) {
+  const e = a.erkannt.find(x => x.feld === 'Budgetrahmen');
+  const roh = korrektur(a, 'Budgetrahmen') || (e && e.güte !== 'fehlt' ? e.wert : '');
+  const m = String(roh).replace(/\./g, '').match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+const ein = () => zustand.ein;
+const raumEin = name => ein().raeume.find(r => r.name === name);
+const leistungEin = name => ein().leistungen.find(l => l.name === name);
+const raumStamm = name => RAEUME.find(r => r.name === name);
+const raumAktiv = name => { const r = raumEin(name); return !!(r && r.aktiv); };
+const raumPreis = name => { const r = raumEin(name); return r ? r.preis : 0; };
+const leistungPreis = name => { const l = leistungEin(name); return l ? l.preis : 0; };
+const plaetzeText = r => r.von + ' bis ' + r.bis;
+const aktiveRaeume = () => RAEUME.filter(r => raumAktiv(r.name));
+
+/* Welcher Raum wird wirklich vorgeschlagen.
+   Der hinterlegte Raum gilt, solange er zur Auswahl steht. Ist er
+   abgeschaltet, sucht der Assistent den KLEINSTEN freien Raum, der die
+   Personenzahl noch traegt, und sagt dazu, warum er gewechselt hat.
+   Findet er keinen, wird das gesagt statt still der teuerste genommen.
+
+   Zuerst stand hier „der guenstigste". Das klang vernuenftig und war
+   fachlich falsch, fuer 60 Personen im Oktober schlug der Assistent die
+   Terrasse am Weiher vor, weil sie 180 Euro billiger ist als der
+   Kaminsaal. Im Bankett gilt der kleinste passende Raum, ein halb leerer
+   Saal wirkt auf den Gast wie eine schlecht besuchte Feier. Sichtbar wird das nur am laufenden Bildschirm, nicht am Code. */
+function effektiverRaum(a) {
+  const stamm = raumStamm(a.raum);
+  const passt = stamm && personen(a) >= stamm.von && personen(a) <= stamm.bis;
+  if (raumAktiv(a.raum) && passt) return { name: a.raum, gewechselt: false };
+  /* Der hinterlegte Raum kann auch dann ausfallen, wenn er zur Auswahl
+     steht, naemlich sobald jemand die Personenzahl korrigiert. Ein Raum
+     bis 140 Plaetze traegt keine 200 Gaeste, und ein Angebot, das ihn
+     trotzdem auffuehrt, ist schlimmer als eine gemeldete Luecke. */
+  const grundText = raumAktiv(a.raum)
+    ? a.raum + ' trägt ' + personen(a) + ' Personen nicht, er fasst ' + plaetzeText(stamm) + '.'
+    : a.raum + ' steht nicht mehr zur Auswahl.';
+  const passend = aktiveRaeume()
+    .filter(r => personen(a) >= r.von && personen(a) <= r.bis)
+    .sort((x, y) => (x.bis - y.bis) || (raumPreis(x.name) - raumPreis(y.name)));
+  if (passend.length) {
+    return { name: passend[0].name, gewechselt: true,
+      grund: grundText + ' ' + passend[0].name +
+        ' ist der kleinste freie Raum, der ' + personen(a) + ' Personen trägt.' };
+  }
+  return { name: null, gewechselt: true, grund: grundText +
+    ' Kein anderer freier Raum trägt ' + personen(a) +
+    ' Personen. Der Assistent schlägt keinen Ersatz vor, er meldet die Lücke.' };
+}
+
+/* Die Positionen des Angebots, aus den Einstellungen gerechnet.
+   `weg` heisst, die Position faellt heraus und zaehlt nicht in die
+   Summe. Sie bleibt trotzdem sichtbar, mit Grund, denn eine still
+   verschwundene Zeile waere genau die Sorte Fehler, die niemandem
+   auffaellt. */
+function positionen(a) {
+  const raum = effektiverRaum(a);
+  return a.posten.map(p => {
+    if (p.haupt) {
+      if (!raum.name) {
+        return { bez: 'Raum, noch offen', menge: p.menge, einzel: 0, weg: true,
+          hinweis: 'Kein freier Raum trägt diese Personenzahl' };
+      }
+      return { bez: raum.name + ', Tagespauschale' + (p.zusatz || ''), menge: p.menge,
+        einzel: raumPreis(raum.name), weg: false,
+        hinweis: raum.gewechselt ? 'statt ' + a.raum + ', Grund steht unter „Anfrage prüfen“' : '' };
+    }
+    if (p.raum) {
+      const aktiv = raumAktiv(p.raum);
+      return { bez: p.raum + (p.zusatz || ''), menge: p.menge, einzel: raumPreis(p.raum),
+        weg: !aktiv, hinweis: aktiv ? '' : 'Raum steht nicht zur Auswahl' };
+    }
+    if (p.leistung) {
+      /* Personenabhaengige Posten folgen der korrigierten Personenzahl.
+         Sonst stuende im Angebot weiter „60 Menues", nachdem jemand auf
+         200 Personen korrigiert hat. */
+      const menge = p.proPerson ? personen(a) : p.menge;
+      return { bez: p.leistung, menge: menge, einzel: leistungPreis(p.leistung), weg: false,
+        hinweis: (p.proPerson && menge !== p.menge) ? 'Menge folgt Ihrer Korrektur, vorher ' + p.menge : '' };
+    }
+    return { bez: p.bez, menge: p.menge, einzel: p.einzel, weg: false,
+      hinweis: 'frei erfasst, steht in keiner Preisliste' };
+  });
+}
+
+const grundsumme = a => positionen(a).reduce((s, p) => s + (p.weg ? 0 : p.menge * p.einzel), 0);
+const pauschaleBetrag = a => ein().pauschale.an
+  ? Math.round(grundsumme(a) * ein().pauschale.prozent / 100) : 0;
+const netto = a => grundsumme(a) + pauschaleBetrag(a);
+
+/* Was die schaltbaren Regeln bei DIESER Anfrage bewirken.
+   `sperre` haelt die Freigabe an, `hinweis` steht nur da. */
+function regelBefunde(a) {
+  const r = ein().regeln;
+  const b = [];
+  if (r.tagungAblehnen && a.reineTagung) {
+    b.push({ art: 'sperre', text: 'Reine Tagung ohne Abendveranstaltung. Ihre Regel lehnt das ab, ' +
+      'der Assistent gibt die Anfrage nicht zur Freigabe frei.' });
+  }
+  if (r.dezemberRuecksprache && monat(a) === 'Dezember') {
+    b.push({ art: 'sperre', text: 'Termin im Dezember. Ihre Regel verlangt Rücksprache im Haus.' });
+  }
+  if (!effektiverRaum(a).name) {
+    b.push({ art: 'sperre', text: 'Kein freier Raum trägt ' + personen(a) +
+      ' Personen. Ohne Raum gibt der Assistent kein Angebot heraus.' });
+  }
+  const fehlend = luecken(a);
+  if (!r.lueckenErfragen && fehlend.length) {
+    b.push({ art: 'hinweis', text: fehlend.length + ' fehlende Angaben bleiben im Anschreiben unerwähnt, ' +
+      'weil das Nachfragen abgeschaltet ist. ' + aufzaehlung(fehlend.map(x => x.feld)) + '.' });
+  }
+  const rahmen = budget(a);
+  if (rahmen !== null && netto(a) > rahmen) {
+    b.push({ art: 'hinweis', text: 'Das Angebot liegt mit ' + eur(netto(a)) +
+      ' über dem genannten Budgetrahmen von ' + eur(rahmen) + '.' });
+  }
+  if (r.vierAugen && netto(a) >= r.vierAugenAb) {
+    b.push({ art: 'hinweis', text: 'Über ' + eur(r.vierAugenAb) + ', deshalb braucht die Freigabe zwei Augenpaare.' });
+  }
+  return b;
+}
+
+const brauchtZweitFreigabe = a => ein().regeln.vierAugen && netto(a) >= ein().regeln.vierAugenAb;
+const gesperrt = a => regelBefunde(a).some(b => b.art === 'sperre');
+const freigabeMoeglich = a => !gesperrt(a) && (!brauchtZweitFreigabe(a) || !!zustand.zweitFreigabe[a.id]);
+const geaendert = () => JSON.stringify(zustand.ein) !== JSON.stringify(STANDARD) || !!zustand.entwurfRegel.trim();
+
+/* Marke und Zurücksetzen-Knopf ohne Neuzeichnen nachziehen. Wird beim
+   Tippen im Regelfeld gerufen, wo ein volles Neuzeichnen den Schreibfokus
+   kosten wuerde. */
+function standAktualisieren() {
+  const pille = document.getElementById('stand-pille');
+  const knopf = document.getElementById('knopf-zuruecksetzen');
+  const g = geaendert();
+  if (pille) {
+    pille.textContent = g ? 'geändert' : 'Standard';
+    pille.className = 'pille ' + (g ? 'p-gold' : 'p-grau');
+  }
+  if (knopf) knopf.disabled = !g;
+}
+
+function el(tag, attrs, ...kinder) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'klasse') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const k of kinder.flat()) {
+    if (k === null || k === undefined || k === false) continue;
+    e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+  }
+  return e;
+}
+
+/* Ein einzeiliges Feld bricht nie um. Steht dort ein langer Freitext, sieht
+   der Nutzer auf einem schmalen Geraet nur einen Ausschnitt und muss im Feld
+   wischen. Gemessen wurden 493 Pixel Inhalt in einem 318 Pixel breiten Feld bei 390
+   Pixel Bildschirmbreite. Ab einer
+   Laenge, die dort nicht mehr passt, wird deshalb ein mehrzeiliges Feld
+   erzeugt. Es sieht gleich aus und traegt denselben Wert, `.value` liest ihn
+   unveraendert, am Verhalten aendert sich also nichts. */
+const WERT_LANG = 38;
+
+/* Ein mehrzeiliges Feld nimmt einen Zeilenumbruch an, ein einzeiliges wirft
+   ihn nach HTML-Spezifikation still weg. Die Umstellung auf `textarea` hat
+   damit eine Moeglichkeit GESCHAFFEN, die es vorher nicht gab, ein Enter im
+   Feld landete roh im Kundenanschreiben und brach dort mitten im Satz um.
+   
+   Eine Behebung ist selbst eine Aenderung und braucht ihre eigene Messung. */
+function einzeilig(s) {
+  /* Macht aus einer Nutzereingabe eine einzige Textzeile.
+
+     Vier Anlaeufe waren noetig. Erst `\r\n`, dann der Tabulator aus Word- und Excel-Kopien,
+     zuletzt die Unicode-Zeichen oberhalb ASCII. Am teuersten war nicht
+     die Luecke selbst, sondern dass hier „ALLE Steuerzeichen" stand,
+     waehrend die Regex nur den ASCII-Bereich traf. Eine Zusage im
+     Kommentar, die der Code nicht haelt, ist schlimmer als gar keine,
+     weil der naechste Leser sich darauf verlaesst.
+
+     Abgedeckt sind jetzt, und mehr ausdruecklich nicht:
+       - ASCII-Steuerzeichen `\x00-\x1F` und `\x7F`
+       - geschuetztes und schmales Leerzeichen, U+00A0 und U+202F,
+         sie kommen praktisch bei jeder Word-Kopie mit
+       - Zeilen- und Absatztrenner U+2028 und U+2029
+       - Nullbreiten- und Formatzeichen U+200B bis U+200D, U+2060, U+FEFF
+       - die uebrigen Unicode-Leerzeichen U+1680, U+2000-U+200A, U+205F, U+3000
+     NICHT abgedeckt sind Bidi-Steuerzeichen wie U+202A bis U+202E. Sie
+     wuerden die Leserichtung drehen, sind aber in einem deutschen
+     Angebotstext kein realistischer Eingabefall. Das ist eine benannte
+     Grenze, keine Nachlaessigkeit.
+
+     Zum Schluss wird mehrfacher Leerraum zusammengezogen, sonst bleibt
+     an der Stelle des entfernten Zeichens eine Luecke im Satz stehen. */
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/[\x00-\x1F\x7F\u00A0\u1680\u2000-\u200D\u2028\u2029\u202F\u205F\u2060\u3000\uFEFF]+/g, ' ')
+    .replace(/ {2,}/g, ' ');
+}
+
+function wertFeld(attrs, wert) {
+  const w = einzeilig(wert);
+  if (w.length > WERT_LANG) {
+    /* Der Umbruch wird schon beim Tippen und beim Einfuegen entfernt, damit
+       der Nutzer gar nicht erst glaubt, er koenne hier Absaetze setzen. Die
+       Schreibstelle im `onchange` des Aufrufers ist zusaetzlich abgesichert,
+       weil ein direkt gesetzter Wert kein `input`-Ereignis ausloest. */
+    const putzen = ev => {
+      if (!/[\r\n]/.test(ev.target.value)) return;
+      const pos = ev.target.selectionStart;
+      ev.target.value = einzeilig(ev.target.value);
+      if (ev.target.setSelectionRange) ev.target.setSelectionRange(pos, pos);
+    };
+    return el('textarea',
+      Object.assign({ klasse: 'eng', rows: '2', oninput: putzen }, attrs), w);
+  }
+  return el('input', Object.assign({ type: 'text', value: w }, attrs));
+}
+
+/* Neu zeichnen und den Schreibfokus zurueckholen.
+   Eine Einstellung wirkt sofort, dafuer wird der ganze Bildschirm neu
+   gebaut, und dabei geht das Feld verloren, in dem gerade getippt wurde.
+   Deshalb wird es hinterher wieder geholt. Die Felder loesen bewusst bei
+   `change` aus und nicht bei jedem Tastendruck, sonst waere der Fokus
+   nach der ersten Ziffer weg. */
+function zeichneMitFokus(id) {
+  zeichne();
+  const w = document.getElementById(id);
+  if (!w) return;
+  w.focus();
+  /* setSelectionRange wirft bei einem Zahlenfeld, deshalb nur bei Text. */
+  if (w.tagName === 'TEXTAREA' || (w.tagName === 'INPUT' && w.type === 'text')) {
+    w.setSelectionRange(w.value.length, w.value.length);
+  }
+}
+
+function gehe(seite, id, schritt) {
+  zustand.seite = seite;
+  if (id) zustand.offen = id;
+  /* Der Schritt wird VOR dem Zeichnen gesetzt. Vorher rief die
+     Angebotsliste erst gehe() und danach noch einmal zeichne(), das ergab
+     zwei Verlaufseintraege je Klick, und der Zurueck-Knopf landete im
+     Pruefschritt derselben Anfrage statt in der Liste. */
+  if (seite === 'anfrage') zustand.schritt = schritt || 'pruefen';
+  zeichne();
+  const bahn = document.querySelector('.bahn');
+  if (bahn) bahn.scrollTop = 0;
+}
+
+/* ------------------------------------------------------------------
+   Adresse je Bildschirm, `#anlernen` oder `#anfrage/A-2418/angebot`.
+   Zwei Gruende, beide praktisch. Der Empfaenger kann einen bestimmten
+   Bildschirm weiterschicken, statt „klick dich mal durch" zu schreiben.
+   Und jede Ansicht laesst sich einzeln messen, ohne sich vorher durch
+   Klicks zu hangeln. Ohne eigene Adresse misst eine Abnahme dreimal dieselbe Startseite und
+   meldet dabei, alles sei sauber.
+   ------------------------------------------------------------------ */
+const SCHRITTE = ['pruefen', 'angebot', 'freigabe'];
+
+/* Ein neuer Bildschirm kommt in den Verlauf, eine geaenderte Einstellung
+   nicht. Sonst haette jeder Schalterklick einen Verlaufseintrag erzeugt,
+   und der Zurück-Knopf muesste sich durch Dutzende davon arbeiten. Ohne
+   diese Unterscheidung fuehrte der Zurück-Knopf umgekehrt gleich ganz aus
+   der Anwendung heraus. */
+let letzteAdresse = null;
+
+function merkeAdresse() {
+  const teile = [zustand.seite];
+  if (zustand.seite === 'anfrage') teile.push(zustand.offen, zustand.schritt);
+  const neu = '#' + teile.join('/');
+  if (letzteAdresse === null || neu === letzteAdresse) {
+    history.replaceState(null, '', neu);
+  } else {
+    history.pushState(null, '', neu);
+  }
+  letzteAdresse = neu;
+}
+
+function leseAdresse() {
+  const teile = (location.hash || '').replace(/^#/, '').split('/').filter(Boolean);
+  if (!teile.length) return;
+  const seiten = ['uebersicht', 'anfragen', 'anfrage', 'angebote', 'anlernen'];
+  if (seiten.indexOf(teile[0]) >= 0) zustand.seite = teile[0];
+  if (zustand.seite === 'anfrage') {
+    const treffer = anfrage(teile[1]);
+    zustand.offen = treffer ? treffer.id : ANFRAGEN[0].id;
+    zustand.schritt = SCHRITTE.indexOf(teile[2]) >= 0 ? teile[2] : 'pruefen';
+  }
+}
+
+/* ------------------------------------------------------- Navigation */
+function navigation() {
+  const punkte = [
+    ['uebersicht', '◫', 'Übersicht', ''],
+    ['anfragen', '✉', 'Anfragen', String(offeneAnfragen().length)],
+    ['angebote', '◰', 'Angebote', ''],
+    ['anlernen', '⚙', 'Assistent anlernen', '']
+  ];
+  return el('nav', { klasse: 'nav', 'aria-label': 'Hauptnavigation' },
+    el('div', { klasse: 'marke' },
+      el('div', { klasse: 'monogramm', 'aria-hidden': 'true', text: 'H' }),
+      el('div', { klasse: 'marke-text' },
+        el('span', { klasse: 'marke-name', text: HAUS.name }),
+        el('span', { klasse: 'marke-sub', text: 'HospitalityOS' }))),
+    el('ul', { klasse: 'nav-liste' },
+      punkte.map(([id, icon, label, zahl]) => el('li', {},
+        el('button', {
+          klasse: 'nav-punkt',
+          'aria-current': zustand.seite === id || (id === 'anfragen' && zustand.seite === 'anfrage') ? 'page' : null,
+          onclick: () => gehe(id)
+        },
+          el('span', { klasse: 'nav-icon', 'aria-hidden': 'true', text: icon }),
+          el('span', { text: label }),
+          zahl ? el('span', { klasse: 'nav-zahl', text: zahl }) : null)))),
+    el('div', { klasse: 'nav-fuss' },
+      el('div', { klasse: 'nav-hinweis' },
+        el('b', { text: 'Nichts geht ohne Sie raus. ' }),
+        'Der Assistent bereitet vor, freigegeben wird von Hand.'),
+      el('div', { klasse: 'nutzer' },
+        el('div', { klasse: 'nutzer-kreis', 'aria-hidden': 'true', text: kuerzel(ein().brief.gastgeberin) }),
+        el('div', {},
+          el('div', { klasse: 'nutzer-name', text: ein().brief.gastgeberin }),
+          el('div', { klasse: 'nutzer-rolle', text: ein().brief.rolle })))));
+}
+
+/* Das Kuerzel wird aus dem Namen erzeugt, nicht daneben gepflegt.
+   Sonst steht nach einer Namensaenderung im Kreis noch das alte. */
+function kuerzel(name) {
+  const teile = String(name).trim().split(/\s+/).filter(Boolean);
+  if (!teile.length) return '·';
+  return (teile[0][0] + (teile.length > 1 ? teile[teile.length - 1][0] : '')).toUpperCase();
+}
+
+function kopf(kicker, titel, rechts) {
+  return el('header', { klasse: 'kopf' },
+    el('div', { klasse: 'kopf-text' },
+      el('p', { klasse: 'kopf-kicker', text: kicker }),
+      el('h1', { klasse: 'kopf-titel', text: titel })),
+    rechts || null);
+}
+
+/* -------------------------------------------------------- Übersicht */
+function seiteUebersicht() {
+  const offen = offeneAnfragen();
+  const wert = offen.reduce((s, a) => s + netto(a), 0);
+  /* Die Zahlen werden gezaehlt, nicht hingeschrieben. Vorher stand hier
+     „zwei davon heute faellig" als fester Text, und der waere falsch
+     geworden, sobald sich am Bestand etwas aendert. */
+  const heute = offen.filter(a => a.frist === 'heute').length;
+  const angehalten = offen.filter(a => gesperrt(a)).length;
+  const kennzahlen = [
+    ['Offene Anfragen', String(offen.length),
+      heute === 1 ? 'eine davon heute fällig' : heute + ' davon heute fällig', heute ? 'warn' : ''],
+    ['Vorbereitete Angebote', String(offen.length - angehalten),
+      angehalten ? angehalten + ' von Ihren Regeln angehalten' : 'warten auf Ihre Freigabe',
+      angehalten ? 'warn' : ''],
+    ['Wert im Trichter', eur(wert),
+      ein().pauschale.an ? 'netto, mit ' + ein().pauschale.bez : 'netto, ohne Steuer', ''],
+    ['Antwortzeit', ein().brief.antwortzeit, 'im Schnitt seit dem Start', 'gut']
+  ];
+  return [
+    kopf('Montag, 18. August 2026', 'Übersicht',
+      el('button', { klasse: 'knopf k-gold', onclick: () => gehe('anfragen') },
+        'Anfragen bearbeiten')),
+    el('div', { klasse: 'bahn' },
+      el('div', { klasse: 'stapel' },
+        el('div', { klasse: 'gitter g4' },
+          kennzahlen.map(([l, w, n, art]) => el('section', { klasse: 'kennzahl' },
+            el('h2', { klasse: 'kennzahl-label', text: l }),
+            el('p', { klasse: 'kennzahl-wert zahl', text: w }),
+            el('p', { klasse: 'kennzahl-note ' + art, text: n })))),
+        el('div', { klasse: 'gitter g-haupt' },
+          el('section', { klasse: 'karte' },
+            el('div', { klasse: 'karte-kopf' },
+              el('h2', { klasse: 'karte-titel', text: 'Heute zu entscheiden' }),
+              el('span', { klasse: 'pille p-gold', text: offen.length + ' offen' })),
+            el('div', {}, offen.map(a => el('button', {
+              klasse: 'liste-zeile', onclick: () => gehe('anfrage', a.id) },
+              el('span', { klasse: 'kanal', 'aria-hidden': 'true', text: a.kanalIcon }),
+              el('span', { klasse: 'liste-haupt' },
+                el('span', { klasse: 'liste-titel', text: a.absender + ', ' + a.firma }),
+                el('span', { klasse: 'liste-sub',
+                  text: erkanntWert(a, 'Anlass') + ', ' + erkanntWert(a, 'Personen') + ' Personen, ' + a.kanal })),
+              el('span', { klasse: 'liste-rechts' },
+                el('span', { klasse: 'zahl', text: eur(netto(a)) }),
+                gesperrt(a)
+                  ? el('span', { klasse: 'pille p-rot', text: 'Regel greift' })
+                  : el('span', { klasse: 'pille ' + (a.frist === 'heute' ? 'p-rot' : 'p-grau'),
+                      text: 'fällig ' + a.frist })))))),
+          el('div', { klasse: 'stapel' },
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Was der Assistent nicht weiß' })),
+              el('div', { klasse: 'karte-leib stapel' },
+                el('p', { klasse: 'kasten-text',
+                  text: 'Diese Angaben fehlen in den offenen Anfragen. Der Assistent rät sie nicht, er weist darauf hin.' }),
+                offen.slice(0, 3).map(a => {
+                  const fehlend = luecken(a);
+                  return el('div', { klasse: 'kasten rot' },
+                    el('p', { klasse: 'kasten-titel', text: a.absender }),
+                    el('p', { klasse: 'kasten-text',
+                      text: fehlend.length ? fehlend.map(l => l.feld).join(', ') : 'nichts offen' }));
+                })))),
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'So arbeitet der Assistent' })),
+              el('div', { klasse: 'karte-leib' },
+                el('ol', { klasse: 'stapel', style: 'gap:9px' },
+                  ['Anfrage kommt an, aus E-Mail, Formular, WhatsApp oder als Telefonnotiz',
+                   'Der Assistent liest sie und belegt jede Angabe mit dem Zitat',
+                   'Er schlägt Raum und Leistungen aus Ihren Hinterlegungen vor',
+                   'Sie prüfen, ändern und geben frei',
+                   'Erst dann geht das Angebot raus'
+                  ].map((t, i) => el('li', { klasse: 'beleg' },
+                    el('span', { klasse: 'pille p-gold', text: String(i + 1) }),
+                    el('span', { text: t })))))))))
+  ];
+}
+
+/* Der angezeigte Wert einer Angabe. Die Korrektur des Menschen schlaegt
+   die Erkennung des Assistenten, sonst waere das Feld daneben Zierde. */
+function erkanntWert(a, feld) {
+  /* Die Personenzahl kommt IMMER aus personen(), damit Anzeige und
+     Rechnung dieselbe Zahl nennen. */
+  if (feld === 'Personen') return String(personen(a));
+  const k = korrektur(a, feld);
+  if (k) return k;
+  const e = a.erkannt.find(x => x.feld === feld);
+  return e && e.wert ? e.wert : 'offen';
+}
+
+/* --------------------------------------------------------- Anfragen */
+function seiteAnfragen() {
+  return [
+    kopf('Alle eingegangenen Anfragen', 'Anfragen'),
+    el('div', { klasse: 'bahn' },
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: ANFRAGEN.length + ' Anfragen' }),
+          el('span', { klasse: 'pille p-grau', text: 'Beispieldaten' })),
+        el('div', { klasse: 'tabelle-rahmen' },
+          el('table', { 'aria-label': 'Liste aller Anfragen mit Kanal, Anlass, Wert und Status' },
+            el('thead', {}, el('tr', {},
+              ['Eingang', 'Anfrage', 'Anlass', 'Wert', 'Status'].map(t =>
+                el('th', { scope: 'col', text: t })))),
+            el('tbody', {}, ANFRAGEN.map(a => el('tr', {
+              klasse: 'klickbar', onclick: () => gehe('anfrage', a.id) },
+              el('td', { klasse: 'zahl' }, a.eingang, el('br'),
+                el('span', { klasse: 'liste-sub', text: a.kanal })),
+              el('td', {}, el('strong', { text: a.absender }), el('br'),
+                el('span', { klasse: 'liste-sub', text: a.firma })),
+              el('td', {}, erkanntWert(a, 'Anlass'), el('br'),
+                el('span', { klasse: 'liste-sub', text: erkanntWert(a, 'Personen') + ' Personen' })),
+              el('td', { klasse: 'zahl', text: eur(netto(a)) }),
+              el('td', {}, el('span', {
+                klasse: 'pille ' + (istFreigegeben(a) ? 'p-gruen' : a.frist === 'heute' ? 'p-rot' : 'p-gold'),
+                text: istFreigegeben(a) ? 'freigegeben' : a.status })))))))))
+  ];
+}
+
+/* ------------------------------------------------- Anfrage bearbeiten */
+function seiteAnfrage() {
+  const a = anfrage(zustand.offen);
+  const schritte = [['pruefen', 'Anfrage prüfen'], ['angebot', 'Angebot'], ['freigabe', 'Freigabe']];
+  const idx = schritte.findIndex(s => s[0] === zustand.schritt);
+  return [
+    kopf('Anfrage ' + a.id + ', eingegangen ' + a.eingang, a.absender + ', ' + a.firma,
+      el('button', { klasse: 'knopf k-still', onclick: () => gehe('anfragen') }, 'Zurück zur Liste')),
+    el('div', { klasse: 'bahn' },
+      el('div', { klasse: 'stapel' },
+        el('div', { klasse: 'schritte' }, schritte.map(([id, label], i) =>
+          el('button', {
+            klasse: 'schritt ' + (i === idx ? 'aktiv' : i < idx ? 'fertig' : ''),
+            onclick: () => { zustand.schritt = id; zeichne(); }
+          }, (i < idx ? '✓ ' : (i + 1) + '. ') + label))),
+        zustand.schritt === 'pruefen' ? schrittPruefen(a)
+          : zustand.schritt === 'angebot' ? schrittAngebot(a) : schrittFreigabe(a)))
+  ];
+}
+
+function schrittPruefen(a) {
+  const sicher = a.erkannt.filter(e => e.güte === 'sicher');
+  const abgeleitet = a.erkannt.filter(e => e.güte === 'abgeleitet');
+  /* `fehlt` sind alle urspruenglich fehlenden Felder, sie bleiben als
+     Eingabe stehen. `offen` sind die, die WIRKLICH noch fehlen. Vorher
+     zaehlte diese Ansicht roh und meldete „2 offen", waehrend Freigabe,
+     Uebersicht und Anschreiben schon „nichts offen" sagten. Drei Zahlen zur selben Sache. */
+  const fehlt = a.erkannt.filter(e => e.güte === 'fehlt');
+  const offen = luecken(a);
+  return el('div', { klasse: 'gitter g-haupt' },
+    el('div', { klasse: 'stapel' },
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Das hat der Assistent verstanden' }),
+          el('span', { klasse: 'pille p-gruen', text: sicher.length + ' belegt' }),
+          abgeleitet.length ? el('span', { klasse: 'pille p-gold', text: abgeleitet.length + ' abgeleitet' }) : null,
+          offen.length ? el('span', { klasse: 'pille p-rot', text: offen.length + ' offen' }) : null,
+          (fehlt.length - offen.length) ? el('span', { klasse: 'pille p-gruen',
+            text: (fehlt.length - offen.length) + ' ergänzt' }) : null),
+        el('div', { klasse: 'karte-leib stapel' },
+          /* Die Felder loesen bei `change` aus und zeichnen neu, damit die
+             Korrektur sofort in Raumwahl, Mengen, Summe und Anschreiben
+             steht. Vorher schrieben sie nur in den Zustand, und nichts
+             hat den je gelesen. */
+          sicher.concat(abgeleitet).map(e => el('div', { klasse: 'feld' },
+            el('label', { klasse: 'feld-label', for: 'f-' + e.feld }, e.feld),
+            wertFeld({ id: 'f-' + e.feld,
+              onchange: ev => {
+                /* Die Personenzahl traegt Mengen und Raumwahl. Eine Eingabe,
+                   die keine Zahl ist, wird abgelehnt und gesagt, statt still
+                   auf den alten Wert zurueckzufallen. Sonst steht im
+                   Anschreiben „für zweihundert Personen", waehrend 60 Menues
+                   gerechnet werden. */
+                if (e.feld === 'Personen' && ev.target.value.trim() && zahlAus(ev.target.value) === null) {
+                  zustand.abgelehnt = a.id + e.feld;
+                  zeichneMitFokus('f-' + e.feld);
+                  return;
+                }
+                delete zustand.abgelehnt;
+                /* `einzeilig` ist hier die eigentliche Absicherung. Das
+                   Putzen beim Tippen greift nur bei echter Eingabe, ein von
+                   aussen gesetzter Wert loest kein `input` aus und kaeme
+                   sonst mit Umbruch bis ins Anschreiben. */
+                zustand.bearbeitet[a.id + e.feld] = einzeilig(ev.target.value);
+                zeichneMitFokus('f-' + e.feld);
+              } }, erkanntWert(a, e.feld)),
+            zustand.abgelehnt === a.id + e.feld ? el('p', { klasse: 'beleg' },
+              el('span', { klasse: 'pille p-rot', text: 'nicht übernommen' }),
+              el('span', { text: 'Hier gehört eine Zahl hin, zum Beispiel 60. Es gilt weiter ' +
+                erkanntWert(a, e.feld) + '.' })) : null,
+            el('p', { klasse: 'beleg' },
+              korrektur(a, e.feld)
+                ? el('span', { klasse: 'pille p-gold', text: 'von Ihnen korrigiert' })
+                : el('span', { klasse: 'pille ' + (e.güte === 'sicher' ? 'p-gruen' : 'p-gold'),
+                    text: e.güte === 'sicher' ? 'belegt' : 'abgeleitet' }),
+              el('span', { klasse: 'beleg-zitat', text: '„' + e.zitat + '“' })))))),
+      fehlt.length ? el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Das weiß der Assistent nicht' })),
+        el('div', { klasse: 'karte-leib stapel' },
+          el('div', { klasse: 'kasten rot' },
+            el('p', { klasse: 'kasten-titel', text: 'Wird nicht geraten, sondern gefragt' }),
+            el('p', { klasse: 'kasten-text',
+              text: 'Diese Angaben stehen nirgends in der Anfrage. Der Assistent lässt sie leer und schlägt vor, sie in der Antwort zu erfragen.' })),
+          /* Was der Mensch hier eintraegt, gilt. Es faellt aus der
+             Nachfrage im Anschreiben heraus, zaehlt in der Freigabe nicht
+             mehr als offener Punkt, und bei der Anrede wird es benutzt.
+             Der Assistent raet weiterhin nichts, aber er ignoriert auch
+             nicht, was ihm jemand sagt. */
+          fehlt.map(e => el('div', { klasse: 'feld' },
+            el('label', { klasse: 'feld-label', for: 'l-' + e.feld },
+              e.feld + (korrektur(a, e.feld) ? ', von Ihnen ergänzt' : ', fehlt')),
+            /* Der zweite Schreibpfad ins Anschreiben. Laeuft er an `wertFeld` vorbei, erzeugt er denselben Ueberlauf, sobald
+            jemand eine lange Angabe ergaenzt.
+               Ein zweiter Pfad, der die Absicherung des ersten nicht kennt,
+               ist die haeufigste Art, eine Behebung wirkungslos zu machen. */
+            wertFeld({ id: 'l-' + e.feld, placeholder: 'noch offen',
+              onchange: ev => {
+                zustand.bearbeitet[a.id + e.feld] = einzeilig(ev.target.value);
+                zeichneMitFokus('l-' + e.feld);
+              } }, korrektur(a, e.feld) || ''),
+            korrektur(a, e.feld)
+              ? el('p', { klasse: 'beleg' },
+                  el('span', { klasse: 'pille p-gruen', text: 'ergänzt' }),
+                  el('span', { text: 'Wird verwendet und im Anschreiben nicht mehr erfragt.' }))
+              : (e.zitat ? el('p', { klasse: 'beleg', text: e.zitat }) : null))))) : null),
+    el('div', { klasse: 'stapel' },
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Die Anfrage im Original' }),
+          el('span', { klasse: 'pille p-grau', text: a.kanal })),
+        el('div', { klasse: 'karte-leib' },
+          el('p', { klasse: 'kasten-text', text: a.text }))),
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Vorgeschlagener Raum' }),
+          raumVorschlag(a).gewechselt ? el('span', { klasse: 'pille p-gold', text: 'gewechselt' }) : null),
+        el('div', { klasse: 'karte-leib stapel' },
+          el('div', { klasse: 'kasten ' + (raumVorschlag(a).name ? 'gold' : 'rot') },
+            el('p', { klasse: 'kasten-titel', text: raumVorschlag(a).name || 'Kein Raum verfügbar' }),
+            el('p', { klasse: 'kasten-text', text: raumBegruendung(a) })),
+          el('p', { klasse: 'beleg' },
+            el('span', { klasse: 'pille p-grau', text: 'Quelle' }),
+            el('span', { text: 'Räume und Preise stehen unter „Assistent anlernen".' })),
+          befundKasten(a),
+          el('button', { klasse: 'knopf k-rand', onclick: () => { zustand.schritt = 'angebot'; zeichne(); } },
+            'Weiter zum Angebot')))));
+}
+
+const raumVorschlag = a => effektiverRaum(a);
+
+/* Die Regelbefunde stehen an jeder Stelle gleich, deshalb liegen sie in
+   einer eigenen Funktion. Ein Befund, den nur die Freigabe zeigt, waere
+   drei Klicks zu spaet. */
+function befundKasten(a) {
+  const b = regelBefunde(a);
+  if (!b.length) return null;
+  return el('div', { klasse: 'stapel' }, b.map(x => el('div', { klasse: 'kasten ' + (x.art === 'sperre' ? 'rot' : 'gold') },
+    el('p', { klasse: 'kasten-titel', text: x.art === 'sperre' ? 'Ihre Regel hält das an' : 'Hinweis aus Ihren Regeln' }),
+    el('p', { klasse: 'kasten-text', text: x.text }))));
+}
+
+function raumBegruendung(a) {
+  const v = raumVorschlag(a);
+  if (!v.name) return v.grund;
+  const r = raumStamm(v.name);
+  const basis = 'Passt zu ' + personen(a) + ' Personen, der Raum fasst ' + plaetzeText(r) +
+    '. Tagespauschale ' + eur(raumPreis(v.name)) + '.';
+  return v.gewechselt ? basis + ' ' + v.grund : basis +
+    ' Ausgewählt, weil er die Personenzahl und den gewünschten Ablauf abdeckt.';
+}
+
+function schrittAngebot(a) {
+  const pos = positionen(a);
+  const p = ein().pauschale;
+  const eigen = zustand.briefe[a.id] !== undefined;
+  return el('div', { klasse: 'gitter g-haupt' },
+    el('div', { klasse: 'stapel' },
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Angebotsentwurf' }),
+          el('span', { klasse: 'pille p-gold', text: 'Entwurf, noch nicht versendet' })),
+        el('div', { klasse: 'tabelle-rahmen' },
+          el('table', { klasse: 'positionen', 'aria-label': 'Positionen des Angebotsentwurfs' },
+            el('thead', {}, el('tr', {},
+              ['Position', 'Menge', 'Einzelpreis', 'Summe'].map(t => el('th', { scope: 'col', text: t })))),
+            el('tbody', {},
+              pos.map(x => el('tr', { klasse: x.weg ? 'aus' : '' },
+                el('td', {}, x.bez,
+                  x.hinweis ? el('span', { klasse: 'liste-sub', text: x.hinweis }) : null),
+                el('td', { klasse: 'zahl', text: String(x.menge) }),
+                el('td', { klasse: 'zahl', text: eur(x.einzel) }),
+                el('td', { klasse: 'zahl', text: x.weg ? 'entfällt' : eur(x.menge * x.einzel) }))),
+              p.an ? el('tr', {},
+                el('td', {}, p.bez,
+                  el('span', { klasse: 'liste-sub', text: p.prozent + ' Prozent auf die Positionen, aus Ihren Einstellungen' })),
+                el('td', { klasse: 'zahl', text: p.prozent + ' %' }),
+                el('td', { klasse: 'zahl', text: eur(grundsumme(a)) }),
+                el('td', { klasse: 'zahl', text: eur(pauschaleBetrag(a)) })) : null,
+              el('tr', { klasse: 'summe-zeile' },
+                el('td', { colspan: '3', text: 'Summe netto' }),
+                el('td', { klasse: 'zahl', text: eur(netto(a)) })))))),
+      el('p', { klasse: 'beleg' },
+        el('span', { klasse: 'pille p-grau', text: 'Quelle' }),
+        el('span', { text: 'Jeder Preis kommt aus „Assistent anlernen". Wird er dort geändert, ändert sich diese Tabelle mit.' })),
+      befundKasten(a)),
+    el('div', { klasse: 'stapel' },
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Anschreiben' }),
+          eigen ? el('span', { klasse: 'pille p-gold', text: 'von Hand geändert' }) : null),
+        el('div', { klasse: 'karte-leib stapel' },
+          el('div', { klasse: 'kasten ' + (anredeBekannt(a) ? (anredeErgaenzt(a) ? 'gruen' : 'gold') : 'rot') },
+            el('p', { klasse: 'kasten-titel', text: anredeErgaenzt(a) ? 'Anrede von Ihnen ergänzt'
+              : anredeBekannt(a) ? 'Anrede belegt' : 'Anrede unbekannt' }),
+            el('p', { klasse: 'kasten-text', text: anredeErgaenzt(a)
+              ? 'Sie haben die Anrede eingetragen, deshalb wird sie verwendet. Der Assistent hätte sie nicht geraten.'
+              : anredeBekannt(a)
+                ? 'Der Assistent schreibt mit Anrede, weil sie in der Anfrage steht.'
+                : 'Der Assistent schreibt bewusst ohne Anrede. Geraten wird nie, eine falsche Anrede kostet mehr als eine fehlende.' })),
+          el('div', { klasse: 'feld' },
+            el('label', { klasse: 'feld-label', for: 'anschreiben' }, 'Text, jederzeit änderbar'),
+            el('textarea', { id: 'anschreiben', rows: '9',
+              onchange: ev => {
+                zustand.briefe[a.id] = ev.target.value;
+                zeichneMitFokus('anschreiben');
+              } },
+              briefText(a))),
+          /* Sobald von Hand geschrieben wurde, wirken Einstellungen NICHT
+             mehr in diesen Text. Das steht hier, statt es stillschweigend
+             zu tun, und der Weg zurueck ist ein Klick. */
+          eigen ? el('div', { klasse: 'kasten grau' },
+            el('p', { klasse: 'kasten-titel', text: 'Ihre Fassung gilt' }),
+            el('p', { klasse: 'kasten-text',
+              text: 'Änderungen unter „Assistent anlernen" schreiben diesen Text nicht mehr um, solange Ihre Fassung steht.' })) : null,
+          el('div', { klasse: 'reihe' },
+            eigen ? el('button', { klasse: 'knopf k-rand k-klein',
+              onclick: () => { delete zustand.briefe[a.id]; zeichne(); } },
+              'Vom Assistenten neu schreiben lassen') : null,
+            el('button', { klasse: 'knopf k-dunkel', onclick: () => { zustand.schritt = 'freigabe'; zeichne(); } },
+              'Weiter zur Freigabe'))))));
+}
+
+/* Der angezeigte Brieftext. Eigene Fassung schlaegt die erzeugte. */
+const briefText = a => zustand.briefe[a.id] !== undefined ? zustand.briefe[a.id] : anschreiben(a);
+
+/* Der Assistent darf die Anrede nie raten. Der MENSCH darf sie ergaenzen,
+   und dann wird sie benutzt. Beides ist unterscheidbar, `ergaenzt` sagt,
+   welcher der beiden Faelle vorliegt. */
+function anredeBekannt(a) {
+  const e = a.erkannt.find(x => x.feld === 'Anrede');
+  return !!(e && e.wert && e.güte === 'sicher') || !!korrektur(a, 'Anrede');
+}
+const anredeErgaenzt = a => {
+  const e = a.erkannt.find(x => x.feld === 'Anrede');
+  const belegt = !!(e && e.wert && e.güte === 'sicher');
+  return !belegt && !!korrektur(a, 'Anrede');
+};
+
+/* Hier wird bewusst NICHT kleingeschrieben.
+   Ein `toLowerCase()` ueber deutschen Text erwischt die Substantive und
+   macht aus „Hochzeit" ein „hochzeit". Genau dieser Fehler ist beim
+   Bauen dieses Prototyps passiert. Sichtbar wird er nur am gerenderten Text, nicht am Code.
+   Die Saetze sind deshalb so gebaut, dass jede eingesetzte Angabe in
+   ihrer Originalschreibweise stehen bleiben kann. */
+function aufzaehlung(teile) {
+  if (teile.length === 0) return '';
+  if (teile.length === 1) return teile[0];
+  return teile.slice(0, -1).join(', ') + ' und ' + teile[teile.length - 1];
+}
+
+function anschreiben(a) {
+  /* HIER liegt die Absicherung gegen Umbrueche, nicht an den Eingabefeldern.
+     Wer eine Eingabestelle einzeln verdrahtet, hat die naechste noch vor
+     sich. Der Brief hat
+     mehrere Eingaenge, aber nur EINEN Bauort, und nur hier ist die Zahl
+     der zu schuetzenden Stellen begrenzt und bleibt es auch, wenn spaeter
+     ein Feld dazukommt. Die gewollten Umbrueche des Briefes selbst stehen
+     als Literale unten und bleiben unberuehrt, geputzt wird ausschliesslich,
+     was ein Mensch eingetippt hat. */
+  const roh = ein().brief;
+  const b = {
+    gruss: einzeilig(roh.gruss), schluss: einzeilig(roh.schluss),
+    gastgeberin: einzeilig(roh.gastgeberin), rolle: einzeilig(roh.rolle),
+    antwortzeit: roh.antwortzeit
+  };
+  const gruss = anredeBekannt(a) ? b.gruss + ', ' + einzeilig(erkanntWert(a, 'Anrede')) + ',' : b.gruss + ',';
+  const fehlend = luecken(a).map(x => x.feld);
+  /* Das Nachfragen nach fehlenden Angaben ist eine Einstellung. Ist sie
+     aus, verschwindet der Satz, und die Luecke steht dafuer als Hinweis
+     in der Freigabe. Sie verschwindet nie einfach so. */
+  const nachfrage = (ein().regeln.lueckenErfragen && fehlend.length)
+    ? ' Für die verbindliche Planung fehlt uns noch ' +
+      (fehlend.length === 1 ? 'eine Angabe, ' : fehlend.length + ' Angaben, ') +
+      aufzaehlung(fehlend) + '.'
+    : '';
+  const v = effektiverRaum(a);
+  /* Kein Artikel vor dem Raumnamen. „unsere Kaminsaal" war falsch, und das
+     Geschlecht eines frei benannten Raumes laesst sich nicht ableiten.
+     Steht kein Raum zur Verfuegung, wird das geschrieben statt einer
+     erfundenen Zusage. */
+  const raumsatz = v.name
+    ? ' Wir haben Ihnen einen Vorschlag für ' + v.name + ' zusammengestellt.'
+    : ' Für Ihre Personenzahl ist derzeit kein Raum frei, wir melden uns dazu persönlich bei Ihnen.';
+  /* Zeitraum und Leistungswunsch stehen im Brief, damit auch diese beiden
+     Felder einen sichtbaren Leser haben. Der Wert wird stets NACH einem
+     Komma eingesetzt, nie in einen Satzbau hinein, dann passt jede
+     Schreibweise ohne Beugung, „Juni" wie „12. und 13. März". */
+  const zeit = einzeilig(erkanntWert(a, 'Zeitraum'));
+  const zeitsatz = (zeit && zeit !== 'offen') ? ', geplant für ' + zeit : '';
+  const wunsch = einzeilig(erkanntWert(a, 'Leistungswunsch'));
+  const wunschsatz = (wunsch && wunsch !== 'offen')
+    ? ' Ihre Wünsche haben wir notiert, ' + wunsch + '.' : '';
+  return gruss + '\n\nvielen Dank für Ihre Anfrage, ' + einzeilig(erkanntWert(a, 'Anlass')) +
+    ' für ' + einzeilig(erkanntWert(a, 'Personen')) + ' Personen' + zeitsatz + '.' +
+    wunschsatz + raumsatz + nachfrage +
+    '\n\n' + b.schluss + '\n\nHerzliche Grüße\n' + b.gastgeberin +
+    '\n' + b.rolle + '\n' + HAUS.name;
+}
+
+function schrittFreigabe(a) {
+  const frei = istFreigegeben(a);
+  return el('div', { klasse: 'gitter g-haupt' },
+    el('section', { klasse: 'karte' },
+      el('div', { klasse: 'karte-kopf' },
+        el('h2', { klasse: 'karte-titel', text: 'Freigabe' }),
+        el('span', { klasse: 'pille ' + (frei ? 'p-gruen' : 'p-rot'),
+          text: frei ? 'freigegeben' : 'noch nicht freigegeben' })),
+      el('div', { klasse: 'karte-leib stapel' },
+        el('div', { klasse: 'kasten ' + (frei ? 'gruen' : 'grau') },
+          el('p', { klasse: 'kasten-titel', text: 'Der letzte Schritt gehört einem Menschen' }),
+          el('p', { klasse: 'kasten-text', text: frei
+            ? 'Sie haben dieses Angebot freigegeben. Es ist zum Versand vorgemerkt.'
+            : 'Der Assistent hat alles vorbereitet. Ohne Ihren Klick verlässt nichts das Haus. Automatischer Versand ist bewusst nicht vorgesehen.' })),
+        /* Greift eine Regel auf ein Angebot, das VORHER freigegeben wurde,
+           steht der Befund sonst kommentarlos unter „ist zum Versand
+           vorgemerkt". Zwei Kaesten, die sich widersprechen, und keiner
+           sagt, welcher gilt. */
+        (frei && gesperrt(a)) ? el('div', { klasse: 'kasten rot' },
+          el('p', { klasse: 'kasten-titel', text: 'Ihre Regel greift nachträglich' }),
+          el('p', { klasse: 'kasten-text',
+            text: 'Dieses Angebot wurde freigegeben, bevor die Regel galt. Die Freigabe bleibt bestehen, ' +
+              'bis Sie sie zurücknehmen. Der Assistent entscheidet das nicht von sich aus.' })) : null,
+        befundKasten(a),
+        /* JEDE erkannte Angabe steht hier, nicht nur drei ausgewählte.
+           Vorher hatten vier der sieben Felder auf „Anfrage prüfen" gar
+           keinen Leser, die Korrektur verschwand also spurlos, während
+           daneben „von Ihnen korrigiert" stand. Eine erste Runde, die nur einen Teil der Felder verdrahtet, laesst die
+           uebrigen still ins Leere laufen. */
+        el('dl', { klasse: 'stapel', style: 'gap:9px' },
+          [['Empfänger', a.absender + ', ' + a.firma]]
+          .concat(a.erkannt.map(x => [x.feld,
+            erkanntWert(a, x.feld) === 'offen' ? 'noch offen' : erkanntWert(a, x.feld) +
+              (korrektur(a, x.feld) ? ', von Ihnen eingetragen' : '')]))
+          .concat([
+           ['Raum', effektiverRaum(a).name || 'noch offen, kein freier Raum passt'],
+           ['Summe netto', eur(netto(a)) + (ein().pauschale.an
+             ? ', davon ' + eur(pauschaleBetrag(a)) + ' ' + ein().pauschale.bez : '')],
+           ['Offene Punkte', luecken(a).length +
+             (ein().regeln.lueckenErfragen ? ' im Anschreiben erfragt' : ', im Anschreiben NICHT erfragt')]
+          ]).map(([k, v]) => el('div', { klasse: 'beleg' },
+            el('dt', { klasse: 'feld-label', style: 'min-width:130px', text: k }),
+            el('dd', { text: v })))),
+        /* Eigene Regeln fuehrt der Prototyp nicht aus, deshalb stehen sie
+           hier als Liste zum Abhaken durch einen Menschen. Sie so zu
+           zeigen, als pruefe sie jemand automatisch, waere eine Zusage,
+           die niemand gegeben hat. */
+        ein().eigeneRegeln.length ? el('div', { klasse: 'kasten gold' },
+          el('p', { klasse: 'kasten-titel', text: 'Ihre eigenen Regeln, von Hand zu prüfen' }),
+          el('div', {}, ein().eigeneRegeln.map(r => el('p', { klasse: 'beleg' },
+            el('span', { klasse: 'pille p-gold', text: '§' }), el('span', { text: r }))))) : null,
+        brauchtZweitFreigabe(a) && !frei ? el('div', { klasse: 'schalter-zeile' },
+          el('button', {
+            klasse: 'schalter', role: 'switch', 'aria-checked': String(!!zustand.zweitFreigabe[a.id]),
+            'aria-label': 'Zweite Freigabe bestätigen',
+            onclick: () => {
+              if (zustand.zweitFreigabe[a.id]) delete zustand.zweitFreigabe[a.id];
+              else zustand.zweitFreigabe[a.id] = true;
+              zeichne();
+            } }, el('span', { klasse: 'schalter-knopf' })),
+          el('div', { klasse: 'schalter-text' },
+            el('b', { text: 'Zweite Freigabe liegt vor' }),
+            el('span', { text: 'Ihre Regel verlangt sie ab ' + eur(ein().regeln.vierAugenAb) +
+              '. Ohne sie bleibt der Freigabeknopf gesperrt.' }))) : null,
+        el('div', { klasse: 'feld' },
+          el('label', { klasse: 'feld-label', for: 'notiz' }, 'Notiz für das Team'),
+          el('textarea', { id: 'notiz', rows: '3', placeholder: 'Optional',
+            onchange: ev => {
+              zustand.notizen[a.id] = ev.target.value;
+              zeichneMitFokus('notiz');
+            } },
+            zustand.notizen[a.id] || '')),
+        frei
+          ? el('button', { klasse: 'knopf k-rand', onclick: () => { delete zustand.freigegeben[a.id]; zeichne(); } },
+              'Freigabe zurücknehmen')
+          : el('button', { klasse: 'knopf k-gold', disabled: !freigabeMoeglich(a) || null,
+              onclick: () => { if (freigabeMoeglich(a)) { zustand.freigegeben[a.id] = true; zeichne(); } } },
+              gesperrt(a) ? 'Freigabe gesperrt, Ihre Regel greift'
+                : brauchtZweitFreigabe(a) && !zustand.zweitFreigabe[a.id]
+                  ? 'Wartet auf die zweite Freigabe'
+                  : 'Angebot freigeben und versenden'))),
+    el('section', { klasse: 'karte' },
+      el('div', { klasse: 'karte-kopf' },
+        el('h2', { klasse: 'karte-titel', text: 'Was mitgeschickt wird' })),
+      el('div', { klasse: 'karte-leib stapel' },
+        ['Angebot als PDF mit Ihrem Briefkopf',
+         'Hausprospekt und Raumplan',
+         'Anfahrt und Übernachtungsmöglichkeiten'
+        ].map(t => el('p', { klasse: 'beleg' },
+          el('span', { klasse: 'pille p-gruen', text: '✓' }), el('span', { text: t }))),
+        /* Die Teamnotiz war eine Stellschraube ohne Leser, sie wurde
+           geschrieben und nirgends angezeigt. Jetzt steht sie hier, und
+           zwar ausdruecklich auf der Seite dessen, was NICHT hinausgeht. */
+        (zustand.notizen[a.id] || '').trim() ? el('div', { klasse: 'kasten gold' },
+          el('p', { klasse: 'kasten-titel', text: 'Ihre Notiz bleibt im Haus' }),
+          el('p', { klasse: 'kasten-text', text: zustand.notizen[a.id] }),
+          el('p', { klasse: 'beleg', text: 'Sie steht im Vorgang für das Team und geht nicht an den Gast.' })) : null,
+        el('div', { klasse: 'kasten grau' },
+          el('p', { klasse: 'kasten-titel', text: 'Prototyp' }),
+          el('p', { klasse: 'kasten-text',
+            text: 'Hier passiert nichts Echtes. Es wird keine Nachricht versendet und nichts gespeichert.' })))));
+}
+
+/* ------------------------------------------------------- Angebote */
+function seiteAngebote() {
+  return [
+    kopf('Alle vorbereiteten und freigegebenen Angebote', 'Angebote'),
+    el('div', { klasse: 'bahn' },
+      el('section', { klasse: 'karte' },
+        el('div', { klasse: 'karte-kopf' },
+          el('h2', { klasse: 'karte-titel', text: 'Angebote' })),
+        el('div', { klasse: 'tabelle-rahmen' },
+          el('table', { 'aria-label': 'Angebote mit Empfänger, Raum, Summe und Freigabestand' },
+            el('thead', {}, el('tr', {},
+              ['Angebot', 'Empfänger', 'Raum', 'Summe netto', 'Freigabe'].map(t =>
+                el('th', { scope: 'col', text: t })))),
+            el('tbody', {}, ANFRAGEN.map(a => el('tr', {
+              klasse: 'klickbar', onclick: () => gehe('anfrage', a.id, 'freigabe') },
+              el('td', { klasse: 'zahl', text: a.id }),
+              el('td', {}, el('strong', { text: a.absender }), el('br'),
+                el('span', { klasse: 'liste-sub', text: a.firma })),
+              el('td', { text: effektiverRaum(a).name || 'noch offen' }),
+              el('td', { klasse: 'zahl', text: eur(netto(a)) }),
+              el('td', {}, el('span', {
+                klasse: 'pille ' + (istFreigegeben(a) ? 'p-gruen' : gesperrt(a) ? 'p-rot' : 'p-gold'),
+                text: istFreigegeben(a) ? 'freigegeben' : gesperrt(a) ? 'Regel greift' : 'wartet auf Sie' })))))))))
+  ];
+}
+
+/* ------------------------------------------------------- Anlernen */
+/* Wie oft ein Raum oder eine Leistung im Bestand vorkommt. Der Beleg
+   neben jedem Preis beantwortet die Frage „was passiert, wenn ich das
+   hier anfasse", bevor jemand es anfasst. */
+const raumInAngeboten = name => ANFRAGEN.filter(a =>
+  a.raum === name || a.posten.some(p => p.raum === name)).length;
+const leistungInAngeboten = name => ANFRAGEN.filter(a =>
+  a.posten.some(p => p.leistung === name)).length;
+
+/* Denselben Wert einmal mit der Werkseinstellung rechnen, ohne den
+   laufenden Zustand zu verlieren. Ohne diesen Vergleich waere „plus
+   1.240 Euro gegenueber dem Standard" geraten statt gerechnet. */
+function mitStandard(fn) {
+  const merk = zustand.ein;
+  zustand.ein = STANDARD;
+  try { return fn(); } finally { zustand.ein = merk; }
+}
+
+const trichter = () => offeneAnfragen().reduce((s, a) => s + netto(a), 0);
+
+/* Reihenfolge der Angaben, Zustand, Titel, Erklaerung, Beleg, Klick.
+   Der Beleg steht VOR dem Klick, weil jeder Aufruf ihn setzt. */
+function schalterZeile(an, titel, text, belegText, beim) {
+  return el('div', { klasse: 'schalter-zeile' },
+    el('button', { klasse: 'schalter', role: 'switch', 'aria-checked': String(!!an),
+      'aria-label': titel, onclick: beim }, el('span', { klasse: 'schalter-knopf' })),
+    el('div', { klasse: 'schalter-text' },
+      el('b', { text: titel }),
+      el('span', { text: text }),
+      belegText ? el('span', { klasse: 'beleg', text: belegText }) : null));
+}
+
+function seiteAnlernen() {
+  const e = ein();
+  const jetzt = trichter();
+  const standardWert = mitStandard(trichter);
+  const differenz = jetzt - standardWert;
+  const raeumeAn = e.raeume.filter(r => r.aktiv).length;
+  const regelnAn = [e.regeln.tagungAblehnen, e.regeln.dezemberRuecksprache,
+    e.regeln.lueckenErfragen, e.regeln.vierAugen].filter(Boolean).length;
+  const angehalten = offeneAnfragen().filter(a => gesperrt(a)).length;
+  const nachtraeglich = ANFRAGEN.filter(a => istFreigegeben(a) && gesperrt(a)).length;
+
+  return [
+    kopf('Preise, Räume, Regeln und Anschreiben, alles wirkt sofort', 'Assistent anlernen',
+      el('span', { id: 'stand-pille', klasse: 'pille ' + (geaendert() ? 'p-gold' : 'p-grau'),
+        text: geaendert() ? 'geändert' : 'Standard' })),
+    el('div', { klasse: 'bahn' },
+      el('div', { klasse: 'stapel' },
+
+        /* ------------------------------------------------ Wirkung oben */
+        el('section', { klasse: 'karte' },
+          el('div', { klasse: 'karte-kopf' },
+            el('h2', { klasse: 'karte-titel', text: 'Was Ihre Einstellungen bewirken' })),
+          el('div', { klasse: 'karte-leib stapel' },
+            el('div', { klasse: 'gitter g4' },
+              el('div', { klasse: 'kennzahl' },
+                el('div', { klasse: 'kennzahl-label', text: 'Wert im Trichter' }),
+                el('div', { klasse: 'kennzahl-wert zahl', text: eur(jetzt) }),
+                el('div', { klasse: 'kennzahl-note ' + (differenz === 0 ? '' : differenz > 0 ? 'gut' : 'warn'),
+                  text: differenz === 0 ? 'wie im Standard'
+                    : (differenz > 0 ? 'plus ' : 'minus ') + eur(Math.abs(differenz)) + ' gegenüber dem Standard' })),
+              el('div', { klasse: 'kennzahl' },
+                el('div', { klasse: 'kennzahl-label', text: 'Räume zur Auswahl' }),
+                el('div', { klasse: 'kennzahl-wert zahl', text: raeumeAn + ' von ' + RAEUME.length }),
+                el('div', { klasse: 'kennzahl-note ' + (raeumeAn === 0 ? 'warn' : ''),
+                  text: raeumeAn === 0 ? 'Ohne Raum entsteht kein Angebot' : 'stehen dem Assistenten offen' })),
+              el('div', { klasse: 'kennzahl' },
+                el('div', { klasse: 'kennzahl-label', text: 'Regeln aktiv' }),
+                el('div', { klasse: 'kennzahl-wert zahl', text: regelnAn + ' von 4' }),
+                el('div', { klasse: 'kennzahl-note', text: 'dazu 3 feste, die bleiben' })),
+              el('div', { klasse: 'kennzahl' },
+                el('div', { klasse: 'kennzahl-label', text: 'Angehaltene Anfragen' }),
+                el('div', { klasse: 'kennzahl-wert zahl', text: String(angehalten) }),
+                /* Nachtraeglich betroffene zaehlen getrennt mit. Sonst meldet
+                   dieser Kasten „nichts wird angehalten", waehrend auf einem
+                   freigegebenen Angebot eine greifende Regel steht. */
+                el('div', { klasse: 'kennzahl-note ' + (angehalten || nachtraeglich ? 'warn' : ''),
+                  text: nachtraeglich
+                    ? (angehalten ? angehalten + ' offen, ' : '') + nachtraeglich + ' bereits freigegeben und nachträglich betroffen'
+                    : (angehalten ? 'gehen so nicht zur Freigabe' : 'nichts wird angehalten') }))),
+            el('div', { klasse: 'reihe' },
+              el('button', { klasse: 'knopf k-gold', onclick: () => gehe('anfragen') },
+                'Wirkung im Angebot ansehen'),
+              el('button', { id: 'knopf-zuruecksetzen', klasse: 'knopf k-rand',
+                disabled: geaendert() ? null : true,
+                onclick: () => {
+                  zustand.ein = tiefeKopie(STANDARD);
+                  zustand.entwurfRegel = '';
+                  zeichne();
+                } }, 'Auf Standard zurücksetzen')),
+            el('p', { klasse: 'beleg',
+              text: 'Das Zurücksetzen betrifft nur diese Einstellungen. Bereits erteilte Freigaben bleiben stehen.' }))),
+
+        el('div', { klasse: 'gitter g-haupt' },
+
+          /* ------------------------------------------- linke Spalte */
+          el('div', { klasse: 'stapel' },
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Räume' }),
+                el('span', { klasse: 'pille p-gold', text: 'wirkt auf Vorschlag und Summe' })),
+              el('div', { klasse: 'tabelle-rahmen' },
+                el('table', { 'aria-label': 'Räume mit Platzangebot, Tagespauschale und Schalter für die Auswahl' },
+                  el('thead', {}, el('tr', {},
+                    ['Raum', 'Plätze', 'Tagespauschale', 'Zur Auswahl'].map(t =>
+                      el('th', { scope: 'col', text: t })))),
+                  el('tbody', {}, RAEUME.map(r => {
+                    const s = raumEin(r.name);
+                    return el('tr', { klasse: s.aktiv ? '' : 'aus' },
+                      el('td', {}, r.name,
+                        el('span', { klasse: 'liste-sub',
+                          text: raumInAngeboten(r.name) === 1 ? 'steht in 1 Angebot'
+                            : 'steht in ' + raumInAngeboten(r.name) + ' Angeboten' })),
+                      el('td', { klasse: 'zahl', text: plaetzeText(r) }),
+                      el('td', {},
+                        el('input', { klasse: 'preis-feld zahl', id: 'raum-' + r.name,
+                          type: 'number', min: '0', step: '10', value: String(s.preis),
+                          'aria-label': 'Tagespauschale ' + r.name,
+                          onchange: ev => {
+                            /* Leer ist keine Null. `Number("")` ist 0 und
+                               rutschte durch die alte Waechterzeile, ein
+                               geleertes Feld setzte den Preis still auf
+                               0 Euro. */
+                            const w = zahlOderNull(ev.target.value);
+                            if (w === null) { zeichne(); return; }
+                            s.preis = w;
+                            zeichneMitFokus('raum-' + r.name);
+                          } })),
+                      el('td', {},
+                        el('button', { klasse: 'schalter', role: 'switch',
+                          'aria-checked': String(!!s.aktiv), 'aria-label': r.name + ' zur Auswahl',
+                          onclick: () => { s.aktiv = !s.aktiv; zeichne(); } },
+                          el('span', { klasse: 'schalter-knopf' }))));
+                  })))),
+              el('div', { klasse: 'karte-leib' },
+                el('p', { klasse: 'beleg',
+                  text: 'Wird ein Raum abgeschaltet, sucht der Assistent den kleinsten freien Raum, der die Personenzahl trägt, und schreibt dazu, warum er gewechselt hat.' }))),
+
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Leistungen' }),
+                el('span', { klasse: 'pille p-gold', text: 'wirkt auf jede Angebotssumme' })),
+              el('div', { klasse: 'tabelle-rahmen' },
+                el('table', { 'aria-label': 'Leistungen mit änderbarem Preis und Einheit' },
+                  el('thead', {}, el('tr', {},
+                    ['Leistung', 'Preis', 'Einheit'].map(t => el('th', { scope: 'col', text: t })))),
+                  el('tbody', {}, LEISTUNGEN.map((l, i) => {
+                    const s = leistungEin(l.name);
+                    return el('tr', {},
+                      el('td', {}, l.name,
+                        el('span', { klasse: 'liste-sub',
+                          text: leistungInAngeboten(l.name) === 1 ? 'steht in 1 Angebot'
+                            : 'steht in ' + leistungInAngeboten(l.name) + ' Angeboten' })),
+                      el('td', {},
+                        el('input', { klasse: 'preis-feld zahl', id: 'leistung-' + i,
+                          type: 'number', min: '0', step: '1', value: String(s.preis),
+                          'aria-label': 'Preis ' + l.name,
+                          onchange: ev => {
+                            const w = zahlOderNull(ev.target.value);
+                            if (w === null) { zeichne(); return; }
+                            s.preis = w;
+                            zeichneMitFokus('leistung-' + i);
+                          } })),
+                      el('td', { text: l.einheit }));
+                  }))))),
+
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Aufschlag auf jedes Angebot' })),
+              el('div', { klasse: 'karte-leib stapel' },
+                schalterZeile(e.pauschale.an, 'Pauschale mitrechnen',
+                  'Sie erscheint als eigene Zeile im Angebot, unter den Positionen und über der Summe.',
+                  e.pauschale.an
+                    ? 'Bringt aktuell ' + eur(offeneAnfragen().reduce((s, a) => s + pauschaleBetrag(a), 0)) + ' über alle offenen Angebote'
+                    : 'Aus. Die Angebote zeigen nur die Positionen.',
+                  () => { e.pauschale.an = !e.pauschale.an; zeichne(); }),
+                e.pauschale.an ? el('div', { klasse: 'gitter g2' },
+                  el('div', { klasse: 'feld' },
+                    el('label', { klasse: 'feld-label', for: 'pausch-bez' }, 'So heißt die Zeile im Angebot'),
+                    el('input', { id: 'pausch-bez', type: 'text', maxlength: '40', value: e.pauschale.bez,
+                      onchange: ev => {
+                        const w = einzeilig(ev.target.value).trim();
+                        if (!w) { zeichne(); return; }
+                        e.pauschale.bez = w;
+                        zeichneMitFokus('pausch-bez');
+                      } })),
+                  el('div', { klasse: 'feld' },
+                    el('label', { klasse: 'feld-label', for: 'pausch-proz' }, 'Prozent auf die Positionen'),
+                    el('input', { id: 'pausch-proz', type: 'number', min: '0', max: '30', step: '1',
+                      value: String(e.pauschale.prozent),
+                      onchange: ev => {
+                        const w = zahlOderNull(ev.target.value);
+                        if (w === null || w > 30) { zeichne(); return; }
+                        e.pauschale.prozent = w;
+                        zeichneMitFokus('pausch-proz');
+                      } }))) : null))),
+
+          /* ------------------------------------------ rechte Spalte */
+          el('div', { klasse: 'stapel' },
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Regeln des Hauses' }),
+                el('span', { klasse: 'pille p-gold', text: 'wirkt auf die Freigabe' })),
+              el('div', { klasse: 'karte-leib stapel' },
+                schalterZeile(e.regeln.tagungAblehnen, 'Reine Tagungen ablehnen',
+                  'Tagungen ohne Abendveranstaltung gehen nicht zur Freigabe, sondern zurück ins Haus.',
+                  'Trifft auf ' + ANFRAGEN.filter(a => a.reineTagung).length + ' der ' + ANFRAGEN.length + ' Anfragen zu',
+                  () => { e.regeln.tagungAblehnen = !e.regeln.tagungAblehnen; zeichne(); }),
+                schalterZeile(e.regeln.dezemberRuecksprache, 'Dezember nur mit Rücksprache',
+                  'Das Haus ist im Dezember ausgelastet, solche Anfragen werden angehalten.',
+                  'Trifft auf ' + ANFRAGEN.filter(a => monat(a) === 'Dezember').length +
+                    ' der ' + ANFRAGEN.length + ' Anfragen zu, im Beispielbestand liegt kein Dezembertermin',
+                  () => { e.regeln.dezemberRuecksprache = !e.regeln.dezemberRuecksprache; zeichne(); }),
+                schalterZeile(e.regeln.lueckenErfragen, 'Fehlende Angaben im Anschreiben erfragen',
+                  'Der Assistent hängt einen Satz an, der die offenen Punkte benennt.',
+                  'Betrifft ' + ANFRAGEN.filter(a => luecken(a).length).length +
+                    ' der ' + ANFRAGEN.length + ' Anfragen',
+                  () => { e.regeln.lueckenErfragen = !e.regeln.lueckenErfragen; zeichne(); }),
+                schalterZeile(e.regeln.vierAugen, 'Große Angebote brauchen zwei Augenpaare',
+                  'Ab einem Betrag muss die Freigabe ausdrücklich bestätigt werden.',
+                  'Betrifft aktuell ' + offeneAnfragen().filter(a => netto(a) >= e.regeln.vierAugenAb).length +
+                    ' der ' + offeneAnfragen().length + ' offenen Angebote',
+                  () => { e.regeln.vierAugen = !e.regeln.vierAugen; zeichne(); }),
+                e.regeln.vierAugen ? el('div', { klasse: 'feld', style: 'max-width:220px' },
+                  el('label', { klasse: 'feld-label', for: 'vieraugen' }, 'Ab welchem Betrag in Euro'),
+                  el('input', { id: 'vieraugen', type: 'number', min: '0', step: '500',
+                    value: String(e.regeln.vierAugenAb),
+                    onchange: ev => {
+                      const w = zahlOderNull(ev.target.value);
+                      if (w === null) { zeichne(); return; }
+                      e.regeln.vierAugenAb = w;
+                      zeichneMitFokus('vieraugen');
+                    } })) : null)),
+
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Fest verdrahtet, ohne Schalter' })),
+              el('div', { klasse: 'karte-leib stapel' },
+                FESTE_REGELN.map(r => el('div', { klasse: 'kasten grau' },
+                  el('p', { klasse: 'kasten-titel', text: 'Fest' }),
+                  el('p', { klasse: 'kasten-text', text: r.text }),
+                  el('p', { klasse: 'beleg', text: r.warum }))))),
+
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Eigene Regeln' })),
+              el('div', { klasse: 'karte-leib stapel' },
+                e.eigeneRegeln.length ? el('div', { klasse: 'reihe' },
+                  e.eigeneRegeln.map((r, i) => el('span', { klasse: 'marke-pille' }, r,
+                    el('button', { 'aria-label': 'Regel entfernen',
+                      onclick: () => { e.eigeneRegeln.splice(i, 1); zeichne(); } }, '✕'))))
+                  : el('p', { klasse: 'beleg', text: 'Noch keine eigene Regel aufgenommen.' }),
+                el('div', { klasse: 'feld' },
+                  el('label', { klasse: 'feld-label', for: 'regel-neu' }, 'Weitere Regel ergänzen'),
+                  /* Beim Tippen wird NICHT neu gezeichnet, sonst waere der
+                     Schreibfokus nach dem ersten Buchstaben weg. Die Marke
+                     oben und der Zurücksetzen-Knopf werden deshalb gezielt
+                     nachgezogen. Ohne das stand „Standard" ueber einem
+                     Bildschirm, in dem schon etwas getippt war, und der
+                     Knopf blieb gesperrt. */
+                  el('input', { id: 'regel-neu', type: 'text', maxlength: '160',
+                    value: zustand.entwurfRegel,
+                    placeholder: 'In eigenen Worten, ganze Sätze wirken besser als Stichworte',
+                    oninput: ev => { zustand.entwurfRegel = ev.target.value; standAktualisieren(); } })),
+                el('div', { klasse: 'reihe' },
+                  el('button', { klasse: 'knopf k-rand k-klein',
+                    onclick: () => {
+                      /* Landet heute nur in internen Ansichten, wird aber mitgeputzt.
+                     Ein Schreibweg, der als einziger vom Muster abweicht, ist
+                     genau der, den spaeter jemand in einen Kundentext zieht. */
+                  const t = einzeilig(zustand.entwurfRegel).trim();
+                      if (!t) return;
+                      e.eigeneRegeln.push(t);
+                      zustand.entwurfRegel = '';
+                      zeichne();
+                    } }, 'Regel aufnehmen')),
+                /* Was der Prototyp NICHT kann, steht hier und wird nicht
+                   verschwiegen. Eine frei formulierte Regel auszufuehren
+                   waere eine Zusage, die diese eine Datei nicht halten
+                   kann. Sie steht deshalb in der Freigabe zum Abhaken. */
+                el('div', { klasse: 'kasten grau' },
+                  el('p', { klasse: 'kasten-titel', text: 'Was damit passiert' }),
+                  el('p', { klasse: 'kasten-text',
+                    text: 'Der Prototyp führt frei formulierte Regeln nicht selbst aus. Sie erscheinen in jeder Freigabe als Punkt, den ein Mensch abhakt. Im Betrieb übernimmt sie der Assistent.' })))),
+
+            el('section', { klasse: 'karte' },
+              el('div', { klasse: 'karte-kopf' },
+                el('h2', { klasse: 'karte-titel', text: 'Anschreiben' }),
+                el('span', { klasse: 'pille p-gold', text: 'wirkt im Entwurf' })),
+              el('div', { klasse: 'karte-leib stapel' },
+                [['gastgeberin', 'Wer unterschreibt', 'Steht in der Seitenleiste und unter jedem Anschreiben'],
+                 ['rolle', 'Seine Rolle im Haus', 'Steht in der Zeile unter dem Namen'],
+                 ['gruss', 'Grußformel am Anfang', 'Davor steht nie ein geratener Name, nur eine belegte Anrede'],
+                 ['antwortzeit', 'Zugesagte Antwortzeit', 'Steht als Kennzahl auf der Übersicht']
+                ].map(([schluessel, label, hilfe]) => el('div', { klasse: 'feld' },
+                  el('label', { klasse: 'feld-label', for: 'brief-' + schluessel }, label),
+                  el('input', { id: 'brief-' + schluessel, type: 'text', maxlength: '60',
+                    value: e.brief[schluessel],
+                    onchange: ev => {
+                      const w = einzeilig(ev.target.value).trim();
+                      if (!w) { zeichne(); return; }
+                      e.brief[schluessel] = w;
+                      zeichneMitFokus('brief-' + schluessel);
+                    } }),
+                  el('p', { klasse: 'beleg', text: hilfe }))),
+                el('div', { klasse: 'feld' },
+                  el('label', { klasse: 'feld-label', for: 'brief-schluss' }, 'Schlusssatz vor der Grußzeile'),
+                  el('textarea', { id: 'brief-schluss', rows: '2', maxlength: '240',
+                    onchange: ev => {
+                      const w = einzeilig(ev.target.value).trim();
+                      if (!w) { zeichne(); return; }
+                      e.brief.schluss = w;
+                      zeichneMitFokus('brief-schluss');
+                    } }, e.brief.schluss)),
+                el('div', { klasse: 'kasten gold' },
+                  el('p', { klasse: 'kasten-titel', text: 'So liest es der Empfänger gerade' }),
+                  el('p', { klasse: 'kasten-text', style: 'white-space:pre-line',
+                    text: anschreiben(offeneAnfragen()[0] || ANFRAGEN[0]) })))),
+
+            el('div', { klasse: 'kasten grau' },
+              el('p', { klasse: 'kasten-titel', text: 'Was hier nicht passiert' }),
+              el('p', { klasse: 'kasten-text',
+                text: 'Der Prototyp speichert nichts. Beim Neuladen der Seite stehen wieder die hinterlegten Werte. Im Betrieb liegen sie beim Kunden, nicht im Browser.' }))))))
+  ];
+}
+
+/* ------------------------------------------------------------ Zeichnen */
+function zeichne() {
+  const seiten = {
+    uebersicht: seiteUebersicht, anfragen: seiteAnfragen,
+    anfrage: seiteAnfrage, angebote: seiteAngebote, anlernen: seiteAnlernen
+  };
+  const inhalt = el('div', { klasse: 'inhalt' },
+    (seiten[zustand.seite] || seiteUebersicht)(),
+    el('footer', { klasse: 'fuss' },
+      HAUS.name + ' · ' + HAUS.zusatz + ' · HospitalityOS Angebots-Assistent. ' +
+      'Prototyp mit Beispieldaten, es wird nichts gespeichert und nichts versendet.'));
+  const wurzel = document.getElementById('wurzel');
+  wurzel.replaceChildren(el('div', { klasse: 'app' }, navigation(), inhalt));
+  merkeAdresse();
+}
+
+/* Adresse von aussen geaendert, etwa durch den Zurück-Knopf oder durch
+   einen weitergeschickten Link, der in einem offenen Fenster geoeffnet
+   wird. Ohne diesen Horcher blieb der Bildschirm stehen, waehrend die
+   Adresse etwas anderes anzeigte. */
+window.addEventListener('hashchange', () => {
+  const roh = location.hash || '';
+  if (roh === letzteAdresse) return;
+  letzteAdresse = roh;
+  leseAdresse();
+  zeichne();
+});
+
+leseAdresse();
+zeichne();
+</script>
+</body>
+</html>
